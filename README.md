@@ -1,29 +1,52 @@
 # my-boilerplate
 This repository serves as a collection of template repositories for my personal use. All template repositories are public and free to use. You'll find the architectural references that inspired these templates listed below. If you find these templates helpful for your own projects, I'd appreciate a GitHub Star!
 
-## Software Architecture
+## Software Architecture Patterns
 ### Data-Centric
- - [WIP] CQRS
+1. **CQRS Architecture**:  
+separates read and write operations for a data store. It enables independent scaling of read and write workloads and optimizes them separately.
+
+
 ### Layered
- - Layered
-   - [go](https://github.com/i7s7-ymp/go-layered)
-   - [python](https://github.com/i7s7-ymp/python-layered)
+1. **Layered(n-tier) Architecture**:  
+separates software into logical layers.
+    - [go](https://github.com/i7s7-ymp/go-layered)
+    - [python](https://github.com/i7s7-ymp/python-layered)
+
+
 ### Component-Based
- - Microkernel
+1. Microkernel
+
+
+
 ### Service-Oriented
- - Microservice
+1. Microservice
+
+
 ### Distributed System
- - Space-Based
+1. Space-Based
+
+
+
 ### Domain-Driven
- - DDD
+1. DDD
+
+
 ### Event-Driven
- - Event-Driven
+1. Event-Driven
+
+
 ### Separation Of Concern
- - MVP
+1. MVP
+
+
 ### Interpreter
- - Interpreter
+1. Interpreter
+
+
 ### Concurrency
- - Orchestration
+1. Orchestration
+
 
 ## reference
 - [ByteByteGo - Top 5 Software Architectural Patterns](https://bytebytego.com/guides/top-5-software-architectural-patterns/)
