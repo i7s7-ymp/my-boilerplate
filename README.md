@@ -15,37 +15,37 @@ separates software into logical layers.
 
 
 ### Component-Based
-1. Microkernel
+1. **Microkernel**:  
 
 
 
 ### Service-Oriented
-1. Microservice
+1. **Microservice**:  
 
 
 ### Distributed System
-1. Space-Based
+1. **Space-Based**:
 
 
 
 ### Domain-Driven
-1. DDD
+1. **DDD**:  
 
 
 ### Event-Driven
-1. Event-Driven
+1. **Event-Driven**:  
 
 
 ### Separation Of Concern
-1. MVP
+1. **MVP**:  
 
 
 ### Interpreter
-1. Interpreter
+1. **Interpreter**:  
 
 
 ### Concurrency
-1. Orchestration
+1. **Orchestration**:  
 
 
 ## reference
