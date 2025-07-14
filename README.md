@@ -7,6 +7,7 @@ list boilerplate repo.
 ### Layered
  - [WIP] Layered
    - [go](https://github.com/i7s7-ymp/go-layered)
+   - [python](https://github.com/i7s7-ymp/python-layered)
 ### Component-Based
  - [WIP] Microkernel
 ### Service-Oriented
