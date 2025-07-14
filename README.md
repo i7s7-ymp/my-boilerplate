@@ -6,6 +6,7 @@ list boilerplate repo.
  - [WIP] CQRS
 ### Layered
  - [WIP] Layered
+   - [go](https://github.com/i7s7-ymp/go-layered)
 ### Component-Based
  - [WIP] Microkernel
 ### Service-Oriented
