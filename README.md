@@ -1,26 +1,29 @@
 # my-boilerplate
-list boilerplate repo.
+This repository serves as a collection of template repositories for my personal use. All template repositories are public and free to use. You'll find the architectural references that inspired these templates listed below. If you find these templates helpful for your own projects, I'd appreciate a GitHub Star!
 
 ## Software Architecture
 ### Data-Centric
  - [WIP] CQRS
 ### Layered
- - [WIP] Layered
+ - Layered
    - [go](https://github.com/i7s7-ymp/go-layered)
    - [python](https://github.com/i7s7-ymp/python-layered)
 ### Component-Based
- - [WIP] Microkernel
+ - Microkernel
 ### Service-Oriented
- - [WIP] Microservice
+ - Microservice
 ### Distributed System
- - [WIP] Space-Based
+ - Space-Based
 ### Domain-Driven
- - [WIP] DDD
+ - DDD
 ### Event-Driven
- - [WIP] Event-Driven
+ - Event-Driven
 ### Separation Of Concern
- - [WIP] MVP
+ - MVP
 ### Interpreter
- - [WIP] Interpreter
+ - Interpreter
 ### Concurrency
- - [WIP] Orchestration
+ - Orchestration
+
+## reference
+- [ByteByteGo - Top 5 Software Architectural Patterns](https://bytebytego.com/guides/top-5-software-architectural-patterns/)
