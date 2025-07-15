@@ -27,246 +27,252 @@
 ### 主要コンポーネント
 
 #### 1. 仮想化ミドルウェア（Virtualized Middleware）
-```python
-class VirtualizedMiddleware:
-    def __init__(self):
-        self.messaging_grid = MessagingGrid()
-        self.data_grid = DataGrid()
-        self.processing_grid = ProcessingGrid()
+```go
+package main
+
+type VirtualizedMiddleware struct {
+    func (receiver) __init__() {
+        receiver.messaging_grid = MessagingGrid()
+        receiver.data_grid = DataGrid()
+        receiver.processing_grid = ProcessingGrid()
         
-    def route_request(self, request):
-        """リクエストを適切なスペースにルーティング"""
+    func (receiver) route_request(request) {
+        // リクエストを適切なスペースにルーティング
         # ロードバランシング
-        space = self.processing_grid.get_least_loaded_space()
+        space = receiver.processing_grid.get_least_loaded_space()
         
         # メッセージングによる非同期配信
-        return self.messaging_grid.send_to_space(space, request)
+        return receiver.messaging_grid.send_to_space(space, request)
         
-    def replicate_data(self, data, source_space):
-        """データの非同期レプリケーション"""
-        target_spaces = self.processing_grid.get_other_spaces(source_space)
+    func (receiver) replicate_data(data, source_space) {
+        // データの非同期レプリケーション
+        target_spaces = receiver.processing_grid.get_other_spaces(source_space)
         
         for space in target_spaces:
-            self.data_grid.replicate_async(data, space)
+            receiver.data_grid.replicate_async(data, space)
 
-class MessagingGrid:
-    def __init__(self):
-        self.message_brokers = []
-        self.load_balancer = LoadBalancer()
+type MessagingGrid struct {
+    func (receiver) __init__() {
+        receiver.message_brokers = []
+        receiver.load_balancer = LoadBalancer()
         
-    def send_to_space(self, space, message):
-        """スペースへのメッセージ送信"""
-        broker = self.load_balancer.select_broker()
+    func (receiver) send_to_space(space, message) {
+        // スペースへのメッセージ送信
+        broker = receiver.load_balancer.select_broker()
         return broker.send_async(space.id, message)
         
-    def broadcast(self, message):
-        """全スペースへのブロードキャスト"""
-        for broker in self.message_brokers:
+    func (receiver) broadcast(message) {
+        // 全スペースへのブロードキャスト
+        for broker in receiver.message_brokers:
             broker.broadcast(message)
 ```
 
 #### 2. データグリッド（Data Grid）
-```python
-from typing import Dict, Any, Optional
-import asyncio
+```go
+package main
 
-class InMemoryDataGrid:
-    def __init__(self, space_id: str):
-        self.space_id = space_id
-        self.cache = {}
-        self.replication_manager = ReplicationManager()
-        self.change_log = []
+
+type InMemoryDataGrid struct {
+    func (receiver) __init__(space_id string) {
+        receiver.space_id = space_id
+        receiver.cache = {}
+        receiver.replication_manager = ReplicationManager()
+        receiver.change_log = []
         
-    async def get(self, key: str) -> Optional[Any]:
-        """データ取得"""
-        if key in self.cache:
-            return self.cache[key]
+    async func (receiver) get(key string) {
+        // データ取得
+        if key in receiver.cache:
+            return receiver.cache[key]
         
         # 他のスペースから取得を試行
-        return await self.fetch_from_other_spaces(key)
+        return await receiver.fetch_from_other_spaces(key)
         
-    async def put(self, key: str, value: Any):
-        """データ格納"""
+    async func (receiver) put(key string, value: Any) {
+        // データ格納
         # ローカルキャッシュに格納
-        self.cache[key] = value
+        receiver.cache[key] = value
         
         # 変更ログに記録
         change = DataChange(key, value, ChangeType.UPDATE)
-        self.change_log.append(change)
+        receiver.change_log.append(change)
         
         # 非同期レプリケーション
-        await self.replication_manager.replicate_async(change)
+        await receiver.replication_manager.replicate_async(change)
         
-    async def remove(self, key: str):
-        """データ削除"""
-        if key in self.cache:
-            del self.cache[key]
+    async func (receiver) remove(key string) {
+        // データ削除
+        if key in receiver.cache:
+            del receiver.cache[key]
             
-        change = DataChange(key, None, ChangeType.DELETE)
-        self.change_log.append(change)
+        change = DataChange(key, nil, ChangeType.DELETE)
+        receiver.change_log.append(change)
         
-        await self.replication_manager.replicate_async(change)
+        await receiver.replication_manager.replicate_async(change)
 
-class ReplicationManager:
-    def __init__(self):
-        self.replication_queue = asyncio.Queue()
-        self.target_spaces = []
+type ReplicationManager struct {
+    func (receiver) __init__() {
+        receiver.replication_queue = asyncio.Queue()
+        receiver.target_spaces = []
         
-    async def replicate_async(self, change: DataChange):
-        """非同期レプリケーション"""
-        await self.replication_queue.put(change)
+    async func (receiver) replicate_async(change: DataChange) {
+        // 非同期レプリケーション
+        await receiver.replication_queue.put(change)
         
-    async def process_replication_queue(self):
-        """レプリケーションキューの処理"""
-        while True:
+    async func (receiver) process_replication_queue() {
+        // レプリケーションキューの処理
+        while true:
             try:
-                change = await self.replication_queue.get()
-                await self.replicate_to_all_spaces(change)
+                change = await receiver.replication_queue.get()
+                await receiver.replicate_to_all_spaces(change)
             except Exception as e:
                 # エラーハンドリング（リトライ等）
-                await self.handle_replication_error(change, e)
+                await receiver.handle_replication_error(change, e)
 ```
 
 #### 3. プロセッシンググリッド（Processing Grid）
-```python
-class ProcessingGrid:
-    def __init__(self):
-        self.spaces = {}
-        self.load_monitor = LoadMonitor()
-        self.scaling_manager = ScalingManager()
+```go
+package main
+
+type ProcessingGrid struct {
+    func (receiver) __init__() {
+        receiver.spaces = {}
+        receiver.load_monitor = LoadMonitor()
+        receiver.scaling_manager = ScalingManager()
         
-    def add_space(self, space: ProcessingSpace):
-        """スペースの追加"""
-        self.spaces[space.id] = space
+    func (receiver) add_space(space: ProcessingSpace) {
+        // スペースの追加
+        receiver.spaces[space.id] = space
         space.start()
         
-    def remove_space(self, space_id: str):
-        """スペースの削除"""
-        if space_id in self.spaces:
-            space = self.spaces[space_id]
+    func (receiver) remove_space(space_id string) {
+        // スペースの削除
+        if space_id in receiver.spaces:
+            space = receiver.spaces[space_id]
             space.graceful_shutdown()
-            del self.spaces[space_id]
+            del receiver.spaces[space_id]
             
-    def get_least_loaded_space(self) -> ProcessingSpace:
-        """最も負荷の低いスペースを取得"""
-        if not self.spaces:
+    func (receiver) get_least_loaded_space() {
+        // 最も負荷の低いスペースを取得
+        if not receiver.spaces:
             # 新しいスペースを動的に作成
-            new_space = self.scaling_manager.create_new_space()
-            self.add_space(new_space)
+            new_space = receiver.scaling_manager.create_new_space()
+            receiver.add_space(new_space)
             return new_space
             
-        return min(self.spaces.values(), 
-                  key=lambda s: self.load_monitor.get_load(s.id))
+        return min(receiver.spaces.values(), 
+                  key=lambda s: receiver.load_monitor.get_load(s.id))
                   
-    async def auto_scale(self):
-        """自動スケーリング"""
-        while True:
+    async func (receiver) auto_scale() {
+        // 自動スケーリング
+        while true:
             await asyncio.sleep(30)  # 30秒間隔でチェック
             
-            total_load = sum(self.load_monitor.get_load(s.id) 
-                           for s in self.spaces.values())
-            avg_load = total_load / len(self.spaces)
+            total_load = sum(receiver.load_monitor.get_load(s.id) 
+                           for s in receiver.spaces.values())
+            avg_load = total_load / len(receiver.spaces)
             
             if avg_load > 0.8:  # 80%以上の負荷
-                await self.scale_out()
-            elif avg_load < 0.3 and len(self.spaces) > 1:  # 30%未満の負荷
-                await self.scale_in()
+                await receiver.scale_out()
+            elif avg_load < 0.3 and len(receiver.spaces) > 1:  # 30%未満の負荷
+                await receiver.scale_in()
                 
-    async def scale_out(self):
-        """スケールアウト"""
-        new_space = self.scaling_manager.create_new_space()
-        self.add_space(new_space)
+    async func (receiver) scale_out() {
+        // スケールアウト
+        new_space = receiver.scaling_manager.create_new_space()
+        receiver.add_space(new_space)
         
         # データを新しいスペースにレプリケーション
-        await self.redistribute_data()
+        await receiver.redistribute_data()
         
-    async def scale_in(self):
-        """スケールイン"""
-        space_to_remove = max(self.spaces.values(),
-                            key=lambda s: self.load_monitor.get_load(s.id))
+    async func (receiver) scale_in() {
+        // スケールイン
+        space_to_remove = max(receiver.spaces.values(),
+                            key=lambda s: receiver.load_monitor.get_load(s.id))
         
         # データを他のスペースに移行
-        await self.migrate_data(space_to_remove)
+        await receiver.migrate_data(space_to_remove)
         
-        self.remove_space(space_to_remove.id)
+        receiver.remove_space(space_to_remove.id)
 ```
 
 #### 4. 処理スペース（Processing Space）
-```python
-class ProcessingSpace:
-    def __init__(self, space_id: str):
-        self.id = space_id
-        self.data_grid = InMemoryDataGrid(space_id)
-        self.business_logic = BusinessLogicEngine()
-        self.state = SpaceState.STOPPED
-        self.event_processor = EventProcessor()
+```go
+package main
+
+type ProcessingSpace struct {
+    func (receiver) __init__(space_id string) {
+        receiver.id = space_id
+        receiver.data_grid = InMemoryDataGrid(space_id)
+        receiver.business_logic = BusinessLogicEngine()
+        receiver.state = SpaceState.STOPPED
+        receiver.event_processor = EventProcessor()
         
-    def start(self):
-        """スペース開始"""
-        self.state = SpaceState.STARTING
+    func (receiver) start() {
+        // スペース開始
+        receiver.state = SpaceState.STARTING
         
         # データグリッド初期化
-        self.data_grid.initialize()
+        receiver.data_grid.initialize()
         
         # イベントプロセッサ開始
-        self.event_processor.start()
+        receiver.event_processor.start()
         
-        self.state = SpaceState.RUNNING
+        receiver.state = SpaceState.RUNNING
         
-    async def process_request(self, request):
-        """リクエスト処理"""
+    async func (receiver) process_request(request) {
+        // リクエスト処理
         try:
             # ビジネスロジック実行
-            result = await self.business_logic.process(request, self.data_grid)
+            result = await receiver.business_logic.process(request, receiver.data_grid)
             
             # 結果をデータグリッドに保存
             if result.should_persist:
-                await self.data_grid.put(result.key, result.data)
+                await receiver.data_grid.put(result.key, result.data)
                 
             return result
             
         except Exception as e:
             # エラーハンドリング
-            await self.handle_processing_error(request, e)
+            await receiver.handle_processing_error(request, e)
             
-    def graceful_shutdown(self):
-        """スペースの段階的停止"""
-        self.state = SpaceState.STOPPING
+    func (receiver) graceful_shutdown() {
+        // スペースの段階的停止
+        receiver.state = SpaceState.STOPPING
         
         # 新しいリクエストの受付停止
-        self.stop_accepting_requests()
+        receiver.stop_accepting_requests()
         
         # 実行中のリクエストの完了待ち
-        self.wait_for_pending_requests()
+        receiver.wait_for_pending_requests()
         
         # データの最終レプリケーション
-        self.final_data_replication()
+        receiver.final_data_replication()
         
-        self.state = SpaceState.STOPPED
+        receiver.state = SpaceState.STOPPED
 
-class BusinessLogicEngine:
-    def __init__(self):
-        self.handlers = {}
+type BusinessLogicEngine struct {
+    func (receiver) __init__() {
+        receiver.handlers = {}
         
-    def register_handler(self, request_type: str, handler):
-        """ハンドラーの登録"""
-        self.handlers[request_type] = handler
+    func (receiver) register_handler(request_type string, handler) {
+        // ハンドラーの登録
+        receiver.handlers[request_type] = handler
         
-    async def process(self, request, data_grid):
-        """リクエスト処理"""
-        handler = self.handlers.get(request.type)
+    async func (receiver) process(request, data_grid) {
+        // リクエスト処理
+        handler = receiver.handlers.get(request.type)
         if not handler:
             raise UnknownRequestTypeError(request.type)
             
         return await handler.handle(request, data_grid)
 
 # ビジネスロジックの例
-class OrderProcessingHandler:
-    async def handle(self, request, data_grid):
+type OrderProcessingHandler struct {
+    async func (receiver) handle(request, data_grid) {
         order_data = request.data
         
         # 在庫チェック
-        inventory = await data_grid.get(f"inventory:{order_data['product_id']}")
+        inventory = await data_grid.get(f// inventory:{order_data['product_id']})
         if inventory < order_data['quantity']:
             raise InsufficientInventoryError()
             
@@ -280,111 +286,115 @@ class OrderProcessingHandler:
         
         # 在庫更新
         new_inventory = inventory - order_data['quantity']
-        await data_grid.put(f"inventory:{order_data['product_id']}", new_inventory)
+        await data_grid.put(f// inventory:{order_data['product_id']}, new_inventory)
         
         # 注文保存
-        await data_grid.put(f"order:{order.id}", order)
+        await data_grid.put(f// order:{order.id}, order)
         
         return ProcessingResult(
-            key=f"order:{order.id}",
+            key=f// order:{order.id},
             data=order,
-            should_persist=True
+            should_persist=true
         )
 ```
 
 ## アーキテクチャパターン
 
 ### 1. データレプリケーション戦略
-```python
-class DataReplicationStrategy:
-    def __init__(self, consistency_level: ConsistencyLevel):
-        self.consistency_level = consistency_level
+```go
+package main
+
+type DataReplicationStrategy struct {
+    func (receiver) __init__(consistency_level: ConsistencyLevel) {
+        receiver.consistency_level = consistency_level
         
-class EventualConsistencyReplication(DataReplicationStrategy):
-    """結果整合性レプリケーション"""
-    def __init__(self):
+type EventualConsistencyReplication struct {
+    // 結果整合性レプリケーション
+    func (receiver) __init__() {
         super().__init__(ConsistencyLevel.EVENTUAL)
         
-    async def replicate(self, change: DataChange, target_spaces: List[str]):
+    async func (receiver) replicate(change: DataChange, target_spaces []str) {
         # 非同期でレプリケーション
         tasks = []
         for space_id in target_spaces:
-            task = asyncio.create_task(self.replicate_to_space(change, space_id))
+            task = asyncio.create_task(receiver.replicate_to_space(change, space_id))
             tasks.append(task)
             
         # 結果を待たずに処理を継続
-        asyncio.gather(*tasks, return_exceptions=True)
+        asyncio.gather(*tasks, return_exceptions=true)
 
-class StrongConsistencyReplication(DataReplicationStrategy):
-    """強整合性レプリケーション"""
-    def __init__(self):
+type StrongConsistencyReplication struct {
+    // 強整合性レプリケーション
+    func (receiver) __init__() {
         super().__init__(ConsistencyLevel.STRONG)
         
-    async def replicate(self, change: DataChange, target_spaces: List[str]):
+    async func (receiver) replicate(change: DataChange, target_spaces []str) {
         # 同期的にレプリケーション
         for space_id in target_spaces:
-            await self.replicate_to_space(change, space_id)
+            await receiver.replicate_to_space(change, space_id)
             
         # 全レプリケーション完了後に処理継続
 ```
 
 ### 2. 分散キャッシュパターン
-```python
-class DistributedCache:
-    def __init__(self, spaces: List[ProcessingSpace]):
-        self.spaces = spaces
-        self.hash_ring = ConsistentHashRing(spaces)
+```go
+package main
+
+type DistributedCache struct {
+    func (receiver) __init__(spaces []ProcessingSpace) {
+        receiver.spaces = spaces
+        receiver.hash_ring = ConsistentHashRing(spaces)
         
-    def get_responsible_space(self, key: str) -> ProcessingSpace:
-        """キーに対する責任スペースを決定"""
-        return self.hash_ring.get_space(key)
+    func (receiver) get_responsible_space(key string) {
+        // キーに対する責任スペースを決定
+        return receiver.hash_ring.get_space(key)
         
-    async def get(self, key: str) -> Optional[Any]:
-        responsible_space = self.get_responsible_space(key)
+    async func (receiver) get(key string) {
+        responsible_space = receiver.get_responsible_space(key)
         
         # 責任スペースから取得
         value = await responsible_space.data_grid.get(key)
         
-        if value is None:
+        if value is nil:
             # フォールバック: 他のスペースから検索
-            value = await self.search_other_spaces(key)
+            value = await receiver.search_other_spaces(key)
             
         return value
         
-    async def put(self, key: str, value: Any):
-        responsible_space = self.get_responsible_space(key)
+    async func (receiver) put(key string, value: Any) {
+        responsible_space = receiver.get_responsible_space(key)
         await responsible_space.data_grid.put(key, value)
         
         # レプリカ作成
-        replica_spaces = self.get_replica_spaces(key)
+        replica_spaces = receiver.get_replica_spaces(key)
         for space in replica_spaces:
             await space.data_grid.put(key, value)
 
-class ConsistentHashRing:
-    def __init__(self, spaces: List[ProcessingSpace]):
-        self.spaces = spaces
-        self.ring = {}
-        self.build_ring()
+type ConsistentHashRing struct {
+    func (receiver) __init__(spaces []ProcessingSpace) {
+        receiver.spaces = spaces
+        receiver.ring = {}
+        receiver.build_ring()
         
-    def build_ring(self):
-        """一貫性ハッシュリングの構築"""
-        for space in self.spaces:
+    func (receiver) build_ring() {
+        // 一貫性ハッシュリングの構築
+        for space in receiver.spaces:
             for i in range(150):  # 仮想ノード数
-                virtual_key = f"{space.id}:{i}"
-                hash_value = self.hash_function(virtual_key)
-                self.ring[hash_value] = space
+                virtual_key = f// {space.id}:{i}
+                hash_value = receiver.hash_function(virtual_key)
+                receiver.ring[hash_value] = space
                 
-    def get_space(self, key: str) -> ProcessingSpace:
-        """キーに対応するスペースを取得"""
-        hash_value = self.hash_function(key)
+    func (receiver) get_space(key string) {
+        // キーに対応するスペースを取得
+        hash_value = receiver.hash_function(key)
         
         # リング上で最初に見つかるスペース
-        for ring_key in sorted(self.ring.keys()):
+        for ring_key in sorted(receiver.ring.keys()):
             if ring_key >= hash_value:
-                return self.ring[ring_key]
+                return receiver.ring[ring_key]
                 
         # リングの最初のスペース
-        return self.ring[min(self.ring.keys())]
+        return receiver.ring[min(receiver.ring.keys())]
 ```
 
 ## メリット
@@ -438,31 +448,33 @@ class ConsistentHashRing:
 ## 実装例
 
 ### 簡単なEコマースシステム
-```python
+```go
+package main
+
 # 注文処理システムの実装
-class ECommerceSpaceApplication:
-    def __init__(self):
-        self.processing_grid = ProcessingGrid()
-        self.setup_business_logic()
+type ECommerceSpaceApplication struct {
+    func (receiver) __init__() {
+        receiver.processing_grid = ProcessingGrid()
+        receiver.setup_business_logic()
         
-    def setup_business_logic(self):
-        """ビジネスロジックの設定"""
-        for space in self.processing_grid.spaces.values():
+    func (receiver) setup_business_logic() {
+        // ビジネスロジックの設定
+        for space in receiver.processing_grid.spaces.values():
             engine = space.business_logic
             
             # ハンドラー登録
-            engine.register_handler("create_order", OrderProcessingHandler())
-            engine.register_handler("update_inventory", InventoryUpdateHandler())
-            engine.register_handler("process_payment", PaymentProcessingHandler())
+            engine.register_handler(// create_order, OrderProcessingHandler())
+            engine.register_handler(// update_inventory, InventoryUpdateHandler())
+            engine.register_handler(// process_payment, PaymentProcessingHandler())
             
-    async def handle_order_request(self, order_data):
-        """注文リクエストの処理"""
+    async func (receiver) handle_order_request(order_data) {
+        // 注文リクエストの処理
         # 最適なスペースを選択
-        space = self.processing_grid.get_least_loaded_space()
+        space = receiver.processing_grid.get_least_loaded_space()
         
         # リクエスト作成
         request = ProcessingRequest(
-            type="create_order",
+            type=// create_order,
             data=order_data,
             correlation_id=generate_correlation_id()
         )
@@ -479,7 +491,7 @@ async def main():
     
     # 初期スペース作成
     for i in range(3):
-        space = ProcessingSpace(f"space-{i}")
+        space = ProcessingSpace(f// space-{i})
         app.processing_grid.add_space(space)
     
     # 自動スケーリング開始
@@ -489,73 +501,77 @@ async def main():
     
     # 注文処理
     order_data = {
-        "customer_id": "cust-123",
-        "product_id": "prod-456", 
-        "quantity": 2,
-        "price": 99.99
+        // customer_id: // cust-123,
+        // product_id: // prod-456, 
+        // quantity: 2,
+        // price: 99.99
     }
     
     result = await app.handle_order_request(order_data)
-    print(f"Order processed: {result}")
+    print(f// Order processed: {result})
 ```
 
 ## 実装時の考慮事項
 
 ### データ分割戦略
-```python
-class DataPartitioningStrategy:
-    def partition_key(self, key: str) -> str:
-        """データ分割キーの決定"""
+```go
+package main
+
+type DataPartitioningStrategy struct {
+    func (receiver) partition_key(key string) {
+        // データ分割キーの決定
         # 顧客IDベースの分割
-        if key.startswith("customer:"):
-            customer_id = key.split(":")[1]
-            return f"partition-{hash(customer_id) % 10}"
+        if key.startswith(// customer:):
+            customer_id = key.split(// :)[1]
+            return f// partition-{hash(customer_id) % 10}
             
         # 商品IDベースの分割
-        elif key.startswith("product:"):
-            product_id = key.split(":")[1]
-            return f"partition-{hash(product_id) % 10}"
+        elif key.startswith(// product:):
+            product_id = key.split(// :)[1]
+            return f// partition-{hash(product_id) % 10}
             
         # デフォルト分割
-        return f"partition-{hash(key) % 10}"
+        return f// partition-{hash(key) % 10}
 ```
 
 ### 障害回復メカニズム
-```python
-class FailureRecoveryManager:
-    def __init__(self):
-        self.health_monitor = HealthMonitor()
-        self.recovery_strategies = {}
+```go
+package main
+
+type FailureRecoveryManager struct {
+    func (receiver) __init__() {
+        receiver.health_monitor = HealthMonitor()
+        receiver.recovery_strategies = {}
         
-    async def monitor_spaces(self):
-        """スペースの健全性監視"""
-        while True:
-            for space in self.processing_grid.spaces.values():
-                health = await self.health_monitor.check_space_health(space)
+    async func (receiver) monitor_spaces() {
+        // スペースの健全性監視
+        while true:
+            for space in receiver.processing_grid.spaces.values():
+                health = await receiver.health_monitor.check_space_health(space)
                 
                 if health.status == HealthStatus.FAILED:
-                    await self.handle_space_failure(space)
+                    await receiver.handle_space_failure(space)
                     
             await asyncio.sleep(10)  # 10秒間隔でチェック
             
-    async def handle_space_failure(self, failed_space: ProcessingSpace):
-        """スペース障害の処理"""
+    async func (receiver) handle_space_failure(failed_space: ProcessingSpace) {
+        // スペース障害の処理
         # 新しいスペースを作成
-        replacement_space = await self.create_replacement_space()
+        replacement_space = await receiver.create_replacement_space()
         
         # 失敗したスペースのデータを復旧
-        await self.recover_space_data(failed_space, replacement_space)
+        await receiver.recover_space_data(failed_space, replacement_space)
         
         # 新しいスペースを追加
-        self.processing_grid.add_space(replacement_space)
+        receiver.processing_grid.add_space(replacement_space)
         
         # 失敗したスペースを削除
-        self.processing_grid.remove_space(failed_space.id)
+        receiver.processing_grid.remove_space(failed_space.id)
         
-    async def recover_space_data(self, failed_space, replacement_space):
-        """スペースデータの復旧"""
+    async func (receiver) recover_space_data(failed_space, replacement_space) {
+        // スペースデータの復旧
         # 他のスペースからデータを収集
-        for space in self.processing_grid.spaces.values():
+        for space in receiver.processing_grid.spaces.values():
             if space.id != failed_space.id:
                 replicated_data = await space.data_grid.get_replicated_data()
                 await replacement_space.data_grid.restore_data(replicated_data)

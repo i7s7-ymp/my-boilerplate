@@ -66,35 +66,61 @@ CQRS（Command Query Responsibility Segregation：コマンドクエリ責任分
 ## 実装パターン
 
 ### 1. シンプルなCQRS
-```python
-# Command側
-class CreateUserCommand:
-    def __init__(self, name: str, email: str):
-        self.name = name
-        self.email = email
+```go
+package cqrs
 
-class UserCommandHandler:
-    def handle(self, command: CreateUserCommand):
-        user = User(command.name, command.email)
-        self.repository.save(user)
+// Command側
+type CreateUserCommand struct {
+    Name  string
+    Email string
+}
 
-# Query側
-class UserQueryHandler:
-    def get_user_by_id(self, user_id: str) -> UserViewModel:
-        return self.read_repository.find_by_id(user_id)
+func NewCreateUserCommand(name, email string) *CreateUserCommand {
+    return &CreateUserCommand{
+        Name:  name,
+        Email: email,
+    }
+}
+
+type UserCommandHandler struct {
+    repository UserRepository
+}
+
+func (h *UserCommandHandler) Handle(command *CreateUserCommand) error {
+    user := NewUser(command.Name, command.Email)
+    return h.repository.Save(user)
+}
+
+// Query側
+type UserQueryHandler struct {
+    readRepository UserReadRepository
+}
+
+func (h *UserQueryHandler) GetUserByID(userID string) (*UserViewModel, error) {
+    return h.readRepository.FindByID(userID)
+}
 ```
 
 ### 2. Event Sourcing との組み合わせ
-```python
-class UserCommandHandler:
-    def handle(self, command: CreateUserCommand):
-        events = [UserCreatedEvent(command.name, command.email)]
-        self.event_store.save_events(events)
-        
-class UserProjection:
-    def handle(self, event: UserCreatedEvent):
-        view_model = UserViewModel(event.name, event.email)
-        self.read_repository.save(view_model)
+```go
+type UserCommandHandler struct {
+    eventStore EventStore
+}
+
+func (h *UserCommandHandler) Handle(command *CreateUserCommand) error {
+    event := NewUserCreatedEvent(command.Name, command.Email)
+    events := []Event{event}
+    return h.eventStore.SaveEvents(events)
+}
+
+type UserProjection struct {
+    readRepository UserReadRepository
+}
+
+func (p *UserProjection) Handle(event *UserCreatedEvent) error {
+    viewModel := NewUserViewModel(event.Name, event.Email)
+    return p.readRepository.Save(viewModel)
+}
 ```
 
 ## 適用場面

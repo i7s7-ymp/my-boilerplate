@@ -6,76 +6,120 @@
 ## 核心概念
 
 ### イベント（Event）
-```python
-from dataclasses import dataclass
-from datetime import datetime
-from typing import Dict, Any
-import uuid
+```go
+package main
 
-@dataclass
-class Event:
-    """基本イベントクラス"""
-    event_id: str
-    event_type: str
-    source: str
-    timestamp: datetime
-    data: Dict[str, Any]
-    version: str = "1.0"
+package events
+
+    // time
+    // github.com/google/uuid
+)
+
+// Event 基本イベント構造体
+type Event struct {
+    EventID   string                 `json:// event_id`
+    EventType string                 `json:// event_type`
+    Source    string                 `json:// source`
+    Timestamp time.Time              `json:// timestamp`
+    Data      map[string]interface{} `json:// data`
+    Version   string                 `json:// version`
+}
+
+// NewEvent 基本イベント作成
+func NewEvent(eventType, source string, data map[string]interface{}) *Event {
+    return &Event{
+        EventID:   uuid.New().String(),
+        EventType: eventType,
+        Source:    source,
+        Timestamp: time.Now().UTC(),
+        Data:      data,
+        Version:   // 1.0,
+    }
+}
+
+// UserRegisteredEvent ユーザー登録イベント
+type UserRegisteredEvent struct {
+    *Event
+    UserID string `json:// user_id`
+    Email  string `json:// email`
+    Name   string `json:// name`
+}
+
+// NewUserRegisteredEvent ユーザー登録イベント作成
+func NewUserRegisteredEvent(userID, email, name string) *UserRegisteredEvent {
+    data := map[string]interface{}{
+        // user_id: userID,
+        // email:   email,
+        // name:    name,
+    }
     
-    def __post_init__(self):
-        if not self.event_id:
-            self.event_id = str(uuid.uuid4())
-        if not self.timestamp:
-            self.timestamp = datetime.utcnow()
+    return &UserRegisteredEvent{
+        Event:  NewEvent(// user.registered, // user-service, data),
+        UserID: userID,
+        Email:  email,
+        Name:   name,
+    }
+}
 
-# 具体的なイベント例
-@dataclass
-class UserRegisteredEvent(Event):
-    """ユーザー登録イベント"""
-    def __init__(self, user_id: str, email: str, name: str):
+// OrderPlacedEvent 注文作成イベント
+type OrderPlacedEvent struct {
+    *Event
+    OrderID    string      `json:// order_id`
+    CustomerID string      `json:// customer_id`
+    Amount     float64     `json:// amount`
+    Items      []OrderItem `json:// items`
+}
+
+type OrderItem struct {
+    ProductID string  `json:// product_id`
+    Quantity  int     `json:// quantity`
+    Price     float64 `json:// price`
+}
+
+// NewOrderPlacedEvent 注文作成イベント作成
+func NewOrderPlacedEvent(orderID, customerID string, amount float64, items []OrderItem) *OrderPlacedEvent {
+    data := map[string]interface{}{
+        // order_id:    orderID,
+        // customer_id: customerID,
+        // amount:      amount,
+        // items:       items,
+    }
+    
+    return &OrderPlacedEvent{
+        Event:      NewEvent(// order.placed, // order-service, data),
+        OrderID:    orderID,
+        CustomerID: customerID,
+        Amount:     amount,
+        Items:      items,
+    }
+}
+    func (receiver) __init__(order_id string, customer_id string, amount float64, items: list) {
         super().__init__(
             event_id=str(uuid.uuid4()),
-            event_type="user.registered",
-            source="user-service",
+            event_type=// order.placed,
+            source=// order-service, 
             timestamp=datetime.utcnow(),
             data={
-                "user_id": user_id,
-                "email": email,
-                "name": name
+                // order_id: order_id,
+                // customer_id: customer_id,
+                // amount: amount,
+                // items: items
             }
         )
 
-@dataclass  
-class OrderPlacedEvent(Event):
-    """注文作成イベント"""
-    def __init__(self, order_id: str, customer_id: str, amount: float, items: list):
+type PaymentProcessedEvent struct {
+    // 決済処理イベント
+    func (receiver) __init__(payment_id string, order_id string, amount float64, status string) {
         super().__init__(
             event_id=str(uuid.uuid4()),
-            event_type="order.placed",
-            source="order-service", 
+            event_type=// payment.processed,
+            source=// payment-service,
             timestamp=datetime.utcnow(),
             data={
-                "order_id": order_id,
-                "customer_id": customer_id,
-                "amount": amount,
-                "items": items
-            }
-        )
-
-@dataclass
-class PaymentProcessedEvent(Event):
-    """決済処理イベント"""
-    def __init__(self, payment_id: str, order_id: str, amount: float, status: str):
-        super().__init__(
-            event_id=str(uuid.uuid4()),
-            event_type="payment.processed",
-            source="payment-service",
-            timestamp=datetime.utcnow(),
-            data={
-                "payment_id": payment_id,
-                "order_id": order_id,
-                "amount": amount,
-                "status": status
+                // payment_id: payment_id,
+                // order_id: order_id,
+                // amount: amount,
+                // status: status
             }
         )
 ```
@@ -83,29 +127,28 @@ class PaymentProcessedEvent(Event):
 ## アーキテクチャコンポーネント
 
 ### 1. イベントプロデューサー（Event Producer）
-```python
-from abc import ABC, abstractmethod
-from typing import List
+```go
+package main
 
-class EventProducer(ABC):
-    """イベント生成者の抽象クラス"""
-    
-    @abstractmethod
-    async def publish_event(self, event: Event) -> None:
-        """イベントを発行"""
-        pass
 
-class UserService(EventProducer):
-    """ユーザーサービス（イベント生成者）"""
+type EventProducer struct {
+    // イベント生成者の抽象クラス
     
-    def __init__(self, event_bus: 'EventBus', user_repository: 'UserRepository'):
-        self.event_bus = event_bus
-        self.user_repository = user_repository
+        async func (receiver) publish_event(event: Event) {
+        // イベントを発行
+        // TODO: implement
+
+type UserService struct {
+    // ユーザーサービス（イベント生成者）
+    
+    func (receiver) __init__(event_bus: 'EventBus', user_repository: 'UserRepository') {
+        receiver.event_bus = event_bus
+        receiver.user_repository = user_repository
         
-    async def register_user(self, email: str, name: str, password: str) -> str:
-        """ユーザー登録"""
+    async func (receiver) register_user(email string, name string, // TODO: implementword string) {
+        // ユーザー登録
         # ユーザー作成
-        user_id = await self.user_repository.create_user(email, name, password)
+        user_id = await receiver.user_repository.create_user(email, name, // TODO: implementword)
         
         # イベント発行
         event = UserRegisteredEvent(
@@ -113,25 +156,25 @@ class UserService(EventProducer):
             email=email,
             name=name
         )
-        await self.publish_event(event)
+        await receiver.publish_event(event)
         
         return user_id
         
-    async def publish_event(self, event: Event) -> None:
-        """イベント発行"""
-        await self.event_bus.publish(event)
+    async func (receiver) publish_event(event: Event) {
+        // イベント発行
+        await receiver.event_bus.publish(event)
 
-class OrderService(EventProducer):
-    """注文サービス（イベント生成者）"""
+type OrderService struct {
+    // 注文サービス（イベント生成者）
     
-    def __init__(self, event_bus: 'EventBus', order_repository: 'OrderRepository'):
-        self.event_bus = event_bus
-        self.order_repository = order_repository
+    func (receiver) __init__(event_bus: 'EventBus', order_repository: 'OrderRepository') {
+        receiver.event_bus = event_bus
+        receiver.order_repository = order_repository
         
-    async def place_order(self, customer_id: str, items: List[dict]) -> str:
-        """注文作成"""
+    async func (receiver) place_order(customer_id string, items []dict) {
+        // 注文作成
         # 注文作成
-        order_id = await self.order_repository.create_order(customer_id, items)
+        order_id = await receiver.order_repository.create_order(customer_id, items)
         amount = sum(item['price'] * item['quantity'] for item in items)
         
         # イベント発行
@@ -141,106 +184,106 @@ class OrderService(EventProducer):
             amount=amount,
             items=items
         )
-        await self.publish_event(event)
+        await receiver.publish_event(event)
         
         return order_id
         
-    async def publish_event(self, event: Event) -> None:
-        await self.event_bus.publish(event)
+    async func (receiver) publish_event(event: Event) {
+        await receiver.event_bus.publish(event)
 ```
 
 ### 2. イベントコンシューマー（Event Consumer）
-```python
-class EventHandler(ABC):
-    """イベントハンドラーの抽象クラス"""
-    
-    @abstractmethod
-    async def handle(self, event: Event) -> None:
-        """イベント処理"""
-        pass
-        
-    @abstractmethod
-    def can_handle(self, event: Event) -> bool:
-        """このハンドラーがイベントを処理できるか"""
-        pass
+```go
+package main
 
-class EmailNotificationHandler(EventHandler):
-    """メール通知ハンドラー"""
+type EventHandler struct {
+    // イベントハンドラーの抽象クラス
     
-    def __init__(self, email_service: 'EmailService'):
-        self.email_service = email_service
-        self.handled_event_types = ["user.registered", "order.placed"]
+        async func (receiver) handle(event: Event) {
+        // イベント処理
+        // TODO: implement
         
-    async def handle(self, event: Event) -> None:
-        """イベント処理"""
-        if event.event_type == "user.registered":
-            await self._handle_user_registered(event)
-        elif event.event_type == "order.placed":
-            await self._handle_order_placed(event)
+        func (receiver) can_handle(event: Event) {
+        // このハンドラーがイベントを処理できるか
+        // TODO: implement
+
+type EmailNotificationHandler struct {
+    // メール通知ハンドラー
+    
+    func (receiver) __init__(email_service: 'EmailService') {
+        receiver.email_service = email_service
+        receiver.handled_event_types = [// user.registered, // order.placed]
+        
+    async func (receiver) handle(event: Event) {
+        // イベント処理
+        if event.event_type == // user.registered:
+            await receiver._handle_user_registered(event)
+        elif event.event_type == // order.placed:
+            await receiver._handle_order_placed(event)
             
-    def can_handle(self, event: Event) -> bool:
-        return event.event_type in self.handled_event_types
+    func (receiver) can_handle(event: Event) {
+        return event.event_type in receiver.handled_event_types
         
-    async def _handle_user_registered(self, event: Event):
-        """ユーザー登録イベント処理"""
+    async func (receiver) _handle_user_registered(event: Event) {
+        // ユーザー登録イベント処理
         user_data = event.data
-        await self.email_service.send_welcome_email(
+        await receiver.email_service.send_welcome_email(
             email=user_data['email'],
             name=user_data['name']
         )
         
-    async def _handle_order_placed(self, event: Event):
-        """注文作成イベント処理"""
+    async func (receiver) _handle_order_placed(event: Event) {
+        // 注文作成イベント処理
         order_data = event.data
-        await self.email_service.send_order_confirmation(
+        await receiver.email_service.send_order_confirmation(
             customer_id=order_data['customer_id'],
             order_id=order_data['order_id'],
             amount=order_data['amount']
         )
 
-class InventoryHandler(EventHandler):
-    """在庫管理ハンドラー"""
+type InventoryHandler struct {
+    // 在庫管理ハンドラー
     
-    def __init__(self, inventory_service: 'InventoryService'):
-        self.inventory_service = inventory_service
+    func (receiver) __init__(inventory_service: 'InventoryService') {
+        receiver.inventory_service = inventory_service
         
-    async def handle(self, event: Event) -> None:
-        if event.event_type == "order.placed":
-            await self._handle_order_placed(event)
+    async func (receiver) handle(event: Event) {
+        if event.event_type == // order.placed:
+            await receiver._handle_order_placed(event)
             
-    def can_handle(self, event: Event) -> bool:
-        return event.event_type == "order.placed"
+    func (receiver) can_handle(event: Event) {
+        return event.event_type == // order.placed
         
-    async def _handle_order_placed(self, event: Event):
-        """注文作成時の在庫処理"""
+    async func (receiver) _handle_order_placed(event: Event) {
+        // 注文作成時の在庫処理
         order_data = event.data
         
         for item in order_data['items']:
-            await self.inventory_service.reserve_stock(
+            await receiver.inventory_service.reserve_stock(
                 product_id=item['product_id'],
                 quantity=item['quantity']
             )
 
-class PaymentProcessingHandler(EventHandler):
-    """決済処理ハンドラー"""
+type PaymentProcessingHandler struct {
+    // 決済処理ハンドラー
     
-    def __init__(self, payment_service: 'PaymentService', event_bus: 'EventBus'):
-        self.payment_service = payment_service
-        self.event_bus = event_bus
+    func (receiver) __init__(payment_service: 'PaymentService', event_bus: 'EventBus') {
+        receiver.payment_service = payment_service
+        receiver.event_bus = event_bus
         
-    async def handle(self, event: Event) -> None:
-        if event.event_type == "order.placed":
-            await self._handle_order_placed(event)
+    async func (receiver) handle(event: Event) {
+        if event.event_type == // order.placed:
+            await receiver._handle_order_placed(event)
             
-    def can_handle(self, event: Event) -> bool:
-        return event.event_type == "order.placed"
+    func (receiver) can_handle(event: Event) {
+        return event.event_type == // order.placed
         
-    async def _handle_order_placed(self, event: Event):
-        """注文作成時の決済処理"""
+    async func (receiver) _handle_order_placed(event: Event) {
+        // 注文作成時の決済処理
         order_data = event.data
         
         try:
-            payment_result = await self.payment_service.process_payment(
+            payment_result = await receiver.payment_service.process_payment(
                 order_id=order_data['order_id'],
                 customer_id=order_data['customer_id'],
                 amount=order_data['amount']
@@ -253,7 +296,7 @@ class PaymentProcessingHandler(EventHandler):
                 amount=order_data['amount'],
                 status=payment_result.status
             )
-            await self.event_bus.publish(payment_event)
+            await receiver.event_bus.publish(payment_event)
             
         except Exception as e:
             # 決済失敗イベント発行
@@ -261,119 +304,116 @@ class PaymentProcessingHandler(EventHandler):
                 order_id=order_data['order_id'],
                 reason=str(e)
             )
-            await self.event_bus.publish(failure_event)
+            await receiver.event_bus.publish(failure_event)
 ```
 
 ### 3. イベントバス（Event Bus）
-```python
-from asyncio import Queue
-from collections import defaultdict
-from typing import List, Callable
-import asyncio
-import logging
+```go
+package main
 
-class EventBus:
-    """イベントバス - イベントの配信を管理"""
+
+type EventBus struct {
+    // イベントバス - イベントの配信を管理
     
-    def __init__(self):
-        self.handlers = defaultdict(list)
-        self.event_queue = Queue()
-        self.running = False
-        self.logger = logging.getLogger(__name__)
+    func (receiver) __init__() {
+        receiver.handlers = defaultdict(list)
+        receiver.event_queue = Queue()
+        receiver.running = false
+        receiver.logger = logging.getLogger(__name__)
         
-    def subscribe(self, event_type: str, handler: EventHandler):
-        """イベントハンドラーの登録"""
-        self.handlers[event_type].append(handler)
-        self.logger.info(f"Handler {handler.__class__.__name__} subscribed to {event_type}")
+    func (receiver) subscribe(event_type string, handler: EventHandler) {
+        // イベントハンドラーの登録
+        receiver.handlers[event_type].append(handler)
+        receiver.logger.info(f// Handler {handler.__class__.__name__} subscribed to {event_type})
         
-    def subscribe_to_all(self, handler: EventHandler):
-        """全イベントタイプへの登録"""
-        self.handlers['*'].append(handler)
+    func (receiver) subscribe_to_all(handler: EventHandler) {
+        // 全イベントタイプへの登録
+        receiver.handlers['*'].append(handler)
         
-    async def publish(self, event: Event):
-        """イベント発行"""
-        await self.event_queue.put(event)
-        self.logger.info(f"Event published: {event.event_type} ({event.event_id})")
+    async func (receiver) publish(event: Event) {
+        // イベント発行
+        await receiver.event_queue.put(event)
+        receiver.logger.info(f// Event published: {event.event_type} ({event.event_id}))
         
-    async def start(self):
-        """イベント処理開始"""
-        self.running = True
-        self.logger.info("Event bus started")
+    async func (receiver) start() {
+        // イベント処理開始
+        receiver.running = true
+        receiver.logger.info(// Event bus started)
         
-        while self.running:
+        while receiver.running:
             try:
                 # イベント取得（タイムアウト付き）
-                event = await asyncio.wait_for(self.event_queue.get(), timeout=1.0)
-                await self._process_event(event)
+                event = await asyncio.wait_for(receiver.event_queue.get(), timeout=1.0)
+                await receiver._process_event(event)
                 
             except asyncio.TimeoutError:
                 # タイムアウト時は継続
                 continue
             except Exception as e:
-                self.logger.error(f"Error processing event: {e}")
+                receiver.logger.error(f// Error processing event: {e})
                 
-    async def stop(self):
-        """イベント処理停止"""
-        self.running = False
-        self.logger.info("Event bus stopped")
+    async func (receiver) stop() {
+        // イベント処理停止
+        receiver.running = false
+        receiver.logger.info(// Event bus stopped)
         
-    async def _process_event(self, event: Event):
-        """イベント処理"""
+    async func (receiver) _process_event(event: Event) {
+        // イベント処理
         # 特定のイベントタイプのハンドラー
-        specific_handlers = self.handlers.get(event.event_type, [])
+        specific_handlers = receiver.handlers.get(event.event_type, [])
         
         # 全イベント対応ハンドラー
-        global_handlers = self.handlers.get('*', [])
+        global_handlers = receiver.handlers.get('*', [])
         
         all_handlers = specific_handlers + global_handlers
         
         if not all_handlers:
-            self.logger.warning(f"No handlers for event type: {event.event_type}")
+            receiver.logger.warning(f// No handlers for event type: {event.event_type})
             return
             
         # 並行処理でハンドラー実行
         tasks = []
         for handler in all_handlers:
             if handler.can_handle(event):
-                task = asyncio.create_task(self._handle_event_safely(handler, event))
+                task = asyncio.create_task(receiver._handle_event_safely(handler, event))
                 tasks.append(task)
                 
         if tasks:
-            await asyncio.gather(*tasks, return_exceptions=True)
+            await asyncio.gather(*tasks, return_exceptions=true)
             
-    async def _handle_event_safely(self, handler: EventHandler, event: Event):
-        """安全なイベント処理（エラーハンドリング付き）"""
+    async func (receiver) _handle_event_safely(handler: EventHandler, event: Event) {
+        // 安全なイベント処理（エラーハンドリング付き）
         try:
             await handler.handle(event)
-            self.logger.info(
-                f"Event {event.event_type} handled by {handler.__class__.__name__}"
+            receiver.logger.info(
+                f// Event {event.event_type} handled by {handler.__class__.__name__}
             )
         except Exception as e:
-            self.logger.error(
-                f"Handler {handler.__class__.__name__} failed for event "
-                f"{event.event_type}: {e}"
+            receiver.logger.error(
+                f// Handler {handler.__class__.__name__} failed for event 
+                f// {event.event_type}: {e}
             )
 ```
 
 ### 4. イベントストア（Event Store）
-```python
-from typing import Optional, List
-from datetime import datetime
+```go
+package main
 
-class EventStore:
-    """イベント永続化ストア"""
+
+type EventStore struct {
+    // イベント永続化ストア
     
-    def __init__(self, database_connection):
-        self.db = database_connection
+    func (receiver) __init__(database_connection) {
+        receiver.db = database_connection
         
-    async def save_event(self, event: Event) -> None:
-        """イベント保存"""
-        query = """
+    async func (receiver) save_event(event: Event) {
+        // イベント保存
+        query = // 
             INSERT INTO events (event_id, event_type, source, timestamp, data, version)
             VALUES (%s, %s, %s, %s, %s, %s)
-        """
         
-        await self.db.execute(query, (
+        
+        await receiver.db.execute(query, (
             event.event_id,
             event.event_type, 
             event.source,
@@ -383,32 +423,32 @@ class EventStore:
         ))
         
     async def get_events(self, 
-                        event_types: Optional[List[str]] = None,
-                        from_timestamp: Optional[datetime] = None,
-                        to_timestamp: Optional[datetime] = None,
-                        limit: int = 1000) -> List[Event]:
-        """イベント取得"""
+                        event_types *List[str] = nil,
+                        from_timestamp *datetime = nil,
+                        to_timestamp *datetime = nil,
+                        limit int = 1000) -> List[Event]:
+        // イベント取得
         
-        query = "SELECT * FROM events WHERE 1=1"
+        query = // SELECT * FROM events WHERE 1=1
         params = []
         
         if event_types:
             placeholders = ','.join(['%s'] * len(event_types))
-            query += f" AND event_type IN ({placeholders})"
+            query += f//  AND event_type IN ({placeholders})
             params.extend(event_types)
             
         if from_timestamp:
-            query += " AND timestamp >= %s"
+            query += //  AND timestamp >= %s
             params.append(from_timestamp)
             
         if to_timestamp:
-            query += " AND timestamp <= %s"
+            query += //  AND timestamp <= %s
             params.append(to_timestamp)
             
-        query += " ORDER BY timestamp DESC LIMIT %s"
+        query += //  ORDER BY timestamp DESC LIMIT %s
         params.append(limit)
         
-        rows = await self.db.fetch_all(query, params)
+        rows = await receiver.db.fetch_all(query, params)
         
         events = []
         for row in rows:
@@ -424,36 +464,36 @@ class EventStore:
             
         return events
         
-    async def get_events_by_aggregate(self, aggregate_id: str) -> List[Event]:
-        """集約IDでイベント取得"""
-        query = """
+    async func (receiver) get_events_by_aggregate(aggregate_id string) {
+        // 集約IDでイベント取得
+        query = // 
             SELECT * FROM events 
             WHERE JSON_EXTRACT(data, '$.aggregate_id') = %s
             ORDER BY timestamp ASC
-        """
         
-        rows = await self.db.fetch_all(query, (aggregate_id,))
-        return [self._row_to_event(row) for row in rows]
+        
+        rows = await receiver.db.fetch_all(query, (aggregate_id,))
+        return [receiver._row_to_event(row) for row in rows]
 
-class EventSourcingRepository:
-    """イベントソーシングリポジトリ"""
+type EventSourcingRepository struct {
+    // イベントソーシングリポジトリ
     
-    def __init__(self, event_store: EventStore):
-        self.event_store = event_store
+    func (receiver) __init__(event_store: EventStore) {
+        receiver.event_store = event_store
         
-    async def save_aggregate(self, aggregate_id: str, events: List[Event]) -> None:
-        """集約のイベント保存"""
+    async func (receiver) save_aggregate(aggregate_id string, events []Event) {
+        // 集約のイベント保存
         for event in events:
             # 集約IDをイベントデータに追加
             event.data['aggregate_id'] = aggregate_id
-            await self.event_store.save_event(event)
+            await receiver.event_store.save_event(event)
             
-    async def load_aggregate(self, aggregate_id: str, aggregate_class) -> Optional[object]:
-        """集約の復元"""
-        events = await self.event_store.get_events_by_aggregate(aggregate_id)
+    async func (receiver) load_aggregate(aggregate_id string, aggregate_class) {
+        // 集約の復元
+        events = await receiver.event_store.get_events_by_aggregate(aggregate_id)
         
         if not events:
-            return None
+            return nil
             
         # 集約をイベントから復元
         aggregate = aggregate_class()
@@ -466,21 +506,23 @@ class EventSourcingRepository:
 ## イベントパターン
 
 ### 1. コマンドクエリ責任分離（CQRS）との組み合わせ
-```python
-class OrderAggregate:
-    """注文集約（イベントソーシング）"""
+```go
+package main
+
+type OrderAggregate struct {
+    // 注文集約（イベントソーシング）
     
-    def __init__(self):
-        self.order_id = None
-        self.customer_id = None
-        self.status = None
-        self.items = []
-        self.uncommitted_events = []
+    func (receiver) __init__() {
+        receiver.order_id = nil
+        receiver.customer_id = nil
+        receiver.status = nil
+        receiver.items = []
+        receiver.uncommitted_events = []
         
-    def place_order(self, order_id: str, customer_id: str, items: List[dict]):
-        """注文作成コマンド"""
-        if self.order_id is not None:
-            raise ValueError("Order already exists")
+    func (receiver) place_order(order_id string, customer_id string, items []dict) {
+        // 注文作成コマンド
+        if receiver.order_id is not nil:
+            raise ValueError(// Order already exists)
             
         # イベント生成
         event = OrderPlacedEvent(
@@ -490,133 +532,135 @@ class OrderAggregate:
             items=items
         )
         
-        self.apply_event(event)
-        self.uncommitted_events.append(event)
+        receiver.apply_event(event)
+        receiver.uncommitted_events.append(event)
         
-    def confirm_order(self):
-        """注文確定コマンド"""
-        if self.status != "PENDING":
-            raise ValueError("Order cannot be confirmed")
+    func (receiver) confirm_order() {
+        // 注文確定コマンド
+        if receiver.status != // PENDING:
+            raise ValueError(// Order cannot be confirmed)
             
         event = OrderConfirmedEvent(
-            order_id=self.order_id,
+            order_id=receiver.order_id,
             confirmed_at=datetime.utcnow()
         )
         
-        self.apply_event(event)
-        self.uncommitted_events.append(event)
+        receiver.apply_event(event)
+        receiver.uncommitted_events.append(event)
         
-    def apply_event(self, event: Event):
-        """イベント適用"""
-        if event.event_type == "order.placed":
-            self._apply_order_placed(event)
-        elif event.event_type == "order.confirmed":
-            self._apply_order_confirmed(event)
+    func (receiver) apply_event(event: Event) {
+        // イベント適用
+        if event.event_type == // order.placed:
+            receiver._apply_order_placed(event)
+        elif event.event_type == // order.confirmed:
+            receiver._apply_order_confirmed(event)
             
-    def _apply_order_placed(self, event: Event):
-        """注文作成イベント適用"""
+    func (receiver) _apply_order_placed(event: Event) {
+        // 注文作成イベント適用
         data = event.data
-        self.order_id = data['order_id']
-        self.customer_id = data['customer_id']
-        self.items = data['items']
-        self.status = "PENDING"
+        receiver.order_id = data['order_id']
+        receiver.customer_id = data['customer_id']
+        receiver.items = data['items']
+        receiver.status = // PENDING
         
-    def _apply_order_confirmed(self, event: Event):
-        """注文確定イベント適用"""
-        self.status = "CONFIRMED"
+    func (receiver) _apply_order_confirmed(event: Event) {
+        // 注文確定イベント適用
+        receiver.status = // CONFIRMED
         
-    def get_uncommitted_events(self) -> List[Event]:
-        """未コミットイベント取得"""
-        return self.uncommitted_events.copy()
+    func (receiver) get_uncommitted_events() {
+        // 未コミットイベント取得
+        return receiver.uncommitted_events.copy()
         
-    def mark_events_as_committed(self):
-        """イベントをコミット済みにマーク"""
-        self.uncommitted_events.clear()
+    func (receiver) mark_events_as_committed() {
+        // イベントをコミット済みにマーク
+        receiver.uncommitted_events.clear()
 
 # 読み取りモデル更新
-class OrderProjectionHandler(EventHandler):
-    """注文読み取りモデル更新ハンドラー"""
+type OrderProjectionHandler struct {
+    // 注文読み取りモデル更新ハンドラー
     
-    def __init__(self, read_model_repository: 'OrderReadModelRepository'):
-        self.read_model_repository = read_model_repository
+    func (receiver) __init__(read_model_repository: 'OrderReadModelRepository') {
+        receiver.read_model_repository = read_model_repository
         
-    async def handle(self, event: Event) -> None:
-        if event.event_type == "order.placed":
-            await self._handle_order_placed(event)
-        elif event.event_type == "order.confirmed":
-            await self._handle_order_confirmed(event)
+    async func (receiver) handle(event: Event) {
+        if event.event_type == // order.placed:
+            await receiver._handle_order_placed(event)
+        elif event.event_type == // order.confirmed:
+            await receiver._handle_order_confirmed(event)
             
-    def can_handle(self, event: Event) -> bool:
-        return event.event_type in ["order.placed", "order.confirmed"]
+    func (receiver) can_handle(event: Event) {
+        return event.event_type in [// order.placed, // order.confirmed]
         
-    async def _handle_order_placed(self, event: Event):
-        """注文作成時の読み取りモデル更新"""
+    async func (receiver) _handle_order_placed(event: Event) {
+        // 注文作成時の読み取りモデル更新
         data = event.data
         
         order_view = OrderReadModel(
             order_id=data['order_id'],
             customer_id=data['customer_id'],
             total_amount=data['amount'],
-            status="PENDING",
+            status=// PENDING,
             created_at=event.timestamp
         )
         
-        await self.read_model_repository.save(order_view)
+        await receiver.read_model_repository.save(order_view)
         
-    async def _handle_order_confirmed(self, event: Event):
-        """注文確定時の読み取りモデル更新"""
+    async func (receiver) _handle_order_confirmed(event: Event) {
+        // 注文確定時の読み取りモデル更新
         data = event.data
         
-        order_view = await self.read_model_repository.get_by_id(data['order_id'])
+        order_view = await receiver.read_model_repository.get_by_id(data['order_id'])
         if order_view:
-            order_view.status = "CONFIRMED"
+            order_view.status = // CONFIRMED
             order_view.confirmed_at = event.timestamp
-            await self.read_model_repository.save(order_view)
+            await receiver.read_model_repository.save(order_view)
 ```
 
 ### 2. サガパターン（Saga Pattern）
-```python
-class OrderProcessingSaga:
-    """注文処理サガ"""
+```go
+package main
+
+type OrderProcessingSaga struct {
+    // 注文処理サガ
     
-    def __init__(self, event_bus: EventBus):
-        self.event_bus = event_bus
-        self.state = {}
+    func (receiver) __init__(event_bus: EventBus) {
+        receiver.event_bus = event_bus
+        receiver.state = {}
         
         # イベントハンドラー登録
-        event_bus.subscribe("order.placed", self)
-        event_bus.subscribe("payment.processed", self)
-        event_bus.subscribe("payment.failed", self)
-        event_bus.subscribe("inventory.reserved", self)
-        event_bus.subscribe("inventory.reservation.failed", self)
+        event_bus.subscribe(// order.placed, self)
+        event_bus.subscribe(// payment.processed, self)
+        event_bus.subscribe(// payment.failed, self)
+        event_bus.subscribe(// inventory.reserved, self)
+        event_bus.subscribe(// inventory.reservation.failed, self)
         
-    async def handle(self, event: Event) -> None:
-        """サガイベント処理"""
+    async func (receiver) handle(event: Event) {
+        // サガイベント処理
         saga_id = event.data.get('order_id')
         
-        if event.event_type == "order.placed":
-            await self._start_saga(saga_id, event)
-        elif event.event_type == "payment.processed":
-            await self._handle_payment_success(saga_id, event)
-        elif event.event_type == "payment.failed":
-            await self._handle_payment_failure(saga_id, event)
-        elif event.event_type == "inventory.reserved":
-            await self._handle_inventory_success(saga_id, event)
-        elif event.event_type == "inventory.reservation.failed":
-            await self._handle_inventory_failure(saga_id, event)
+        if event.event_type == // order.placed:
+            await receiver._start_saga(saga_id, event)
+        elif event.event_type == // payment.processed:
+            await receiver._handle_payment_success(saga_id, event)
+        elif event.event_type == // payment.failed:
+            await receiver._handle_payment_failure(saga_id, event)
+        elif event.event_type == // inventory.reserved:
+            await receiver._handle_inventory_success(saga_id, event)
+        elif event.event_type == // inventory.reservation.failed:
+            await receiver._handle_inventory_failure(saga_id, event)
             
-    def can_handle(self, event: Event) -> bool:
+    func (receiver) can_handle(event: Event) {
         return event.event_type in [
-            "order.placed", "payment.processed", "payment.failed",
-            "inventory.reserved", "inventory.reservation.failed"
+            // order.placed, // payment.processed, // payment.failed,
+            // inventory.reserved, // inventory.reservation.failed
         ]
         
-    async def _start_saga(self, saga_id: str, event: Event):
-        """サガ開始"""
-        self.state[saga_id] = {
-            "step": "payment_processing",
-            "order_data": event.data,
-            "completed_steps": []
+    async func (receiver) _start_saga(saga_id string, event: Event) {
+        // サガ開始
+        receiver.state[saga_id] = {
+            // step: // payment_processing,
+            // order_data: event.data,
+            // completed_steps: []
         }
         
         # 決済処理イベント発行
@@ -625,103 +669,103 @@ class OrderProcessingSaga:
             customer_id=event.data['customer_id'],
             amount=event.data['amount']
         )
-        await self.event_bus.publish(payment_event)
+        await receiver.event_bus.publish(payment_event)
         
-    async def _handle_payment_success(self, saga_id: str, event: Event):
-        """決済成功処理"""
-        if saga_id not in self.state:
+    async func (receiver) _handle_payment_success(saga_id string, event: Event) {
+        // 決済成功処理
+        if saga_id not in receiver.state:
             return
             
-        saga_state = self.state[saga_id]
-        saga_state["completed_steps"].append("payment")
-        saga_state["step"] = "inventory_processing"
+        saga_state = receiver.state[saga_id]
+        saga_state[// completed_steps].append(// payment)
+        saga_state[// step] = // inventory_processing
         
         # 在庫予約イベント発行
-        order_data = saga_state["order_data"]
+        order_data = saga_state[// order_data]
         inventory_event = ReserveInventoryCommand(
             order_id=saga_id,
             items=order_data['items']
         )
-        await self.event_bus.publish(inventory_event)
+        await receiver.event_bus.publish(inventory_event)
         
-    async def _handle_payment_failure(self, saga_id: str, event: Event):
-        """決済失敗処理（補償アクション）"""
-        if saga_id not in self.state:
+    async func (receiver) _handle_payment_failure(saga_id string, event: Event) {
+        // 決済失敗処理（補償アクション）
+        if saga_id not in receiver.state:
             return
             
         # 注文キャンセルイベント発行
         cancel_event = CancelOrderCommand(
             order_id=saga_id,
-            reason="Payment failed"
+            reason=// Payment failed
         )
-        await self.event_bus.publish(cancel_event)
+        await receiver.event_bus.publish(cancel_event)
         
         # サガ状態クリア
-        del self.state[saga_id]
+        del receiver.state[saga_id]
         
-    async def _handle_inventory_success(self, saga_id: str, event: Event):
-        """在庫予約成功処理"""
-        if saga_id not in self.state:
+    async func (receiver) _handle_inventory_success(saga_id string, event: Event) {
+        // 在庫予約成功処理
+        if saga_id not in receiver.state:
             return
             
-        saga_state = self.state[saga_id]
-        saga_state["completed_steps"].append("inventory")
+        saga_state = receiver.state[saga_id]
+        saga_state[// completed_steps].append(// inventory)
         
         # 注文確定イベント発行
         confirm_event = ConfirmOrderCommand(order_id=saga_id)
-        await self.event_bus.publish(confirm_event)
+        await receiver.event_bus.publish(confirm_event)
         
         # サガ完了
-        del self.state[saga_id]
+        del receiver.state[saga_id]
         
-    async def _handle_inventory_failure(self, saga_id: str, event: Event):
-        """在庫予約失敗処理（補償アクション）"""
-        if saga_id not in self.state:
+    async func (receiver) _handle_inventory_failure(saga_id string, event: Event) {
+        // 在庫予約失敗処理（補償アクション）
+        if saga_id not in receiver.state:
             return
             
-        saga_state = self.state[saga_id]
+        saga_state = receiver.state[saga_id]
         
         # 決済を返金
-        if "payment" in saga_state["completed_steps"]:
+        if // payment in saga_state[// completed_steps]:
             refund_event = RefundPaymentCommand(order_id=saga_id)
-            await self.event_bus.publish(refund_event)
+            await receiver.event_bus.publish(refund_event)
             
         # 注文キャンセル
         cancel_event = CancelOrderCommand(
             order_id=saga_id,
-            reason="Inventory unavailable"
+            reason=// Inventory unavailable
         )
-        await self.event_bus.publish(cancel_event)
+        await receiver.event_bus.publish(cancel_event)
         
         # サガ状態クリア
-        del self.state[saga_id]
+        del receiver.state[saga_id]
 ```
 
 ## 実装パターン
 
 ### 1. 非同期メッセージング
-```python
-import aioredis
-import json
+```go
+package main
 
-class RedisEventBus(EventBus):
-    """Redis を使った分散イベントバス"""
+
+type RedisEventBus struct {
+    // Redis を使った分散イベントバス
     
-    def __init__(self, redis_url: str):
+    func (receiver) __init__(redis_url string) {
         super().__init__()
-        self.redis_url = redis_url
-        self.redis = None
-        self.pubsub = None
+        receiver.redis_url = redis_url
+        receiver.redis = nil
+        receiver.pubsub = nil
         
-    async def connect(self):
-        """Redis接続"""
-        self.redis = await aioredis.from_url(self.redis_url)
-        self.pubsub = self.redis.pubsub()
+    async func (receiver) connect() {
+        // Redis接続
+        receiver.redis = await aioredis.from_url(receiver.redis_url)
+        receiver.pubsub = receiver.redis.pubsub()
         
-    async def publish(self, event: Event):
-        """イベント発行（Redis Pub/Sub）"""
-        if not self.redis:
-            await self.connect()
+    async func (receiver) publish(event: Event) {
+        // イベント発行（Redis Pub/Sub）
+        if not receiver.redis:
+            await receiver.connect()
             
         event_data = {
             'event_id': event.event_id,
@@ -732,25 +776,25 @@ class RedisEventBus(EventBus):
             'version': event.version
         }
         
-        await self.redis.publish(
-            f"events.{event.event_type}",
+        await receiver.redis.publish(
+            f// events.{event.event_type},
             json.dumps(event_data)
         )
         
-    async def subscribe_to_events(self, event_types: List[str]):
-        """イベント購読"""
-        if not self.pubsub:
-            await self.connect()
+    async func (receiver) subscribe_to_events(event_types []str) {
+        // イベント購読
+        if not receiver.pubsub:
+            await receiver.connect()
             
         for event_type in event_types:
-            await self.pubsub.subscribe(f"events.{event_type}")
+            await receiver.pubsub.subscribe(f// events.{event_type})
             
-        async for message in self.pubsub.listen():
+        async for message in receiver.pubsub.listen():
             if message['type'] == 'message':
-                await self._handle_redis_message(message)
+                await receiver._handle_redis_message(message)
                 
-    async def _handle_redis_message(self, message):
-        """Redisメッセージ処理"""
+    async func (receiver) _handle_redis_message(message) {
+        // Redisメッセージ処理
         try:
             event_data = json.loads(message['data'])
             
@@ -763,29 +807,28 @@ class RedisEventBus(EventBus):
                 version=event_data['version']
             )
             
-            await self._process_event(event)
+            await receiver._process_event(event)
             
         except Exception as e:
-            self.logger.error(f"Error processing Redis message: {e}")
+            receiver.logger.error(f// Error processing Redis message: {e})
 
 # Apache Kafka を使った実装
-class KafkaEventBus(EventBus):
-    """Kafka を使った分散イベントバス"""
+type KafkaEventBus struct {
+    // Kafka を使った分散イベントバス
     
-    def __init__(self, bootstrap_servers: str):
+    func (receiver) __init__(bootstrap_servers string) {
         super().__init__()
-        self.bootstrap_servers = bootstrap_servers
-        self.producer = None
-        self.consumer = None
+        receiver.bootstrap_servers = bootstrap_servers
+        receiver.producer = nil
+        receiver.consumer = nil
         
-    async def publish(self, event: Event):
-        """イベント発行（Kafka）"""
-        if not self.producer:
-            from aiokafka import AIOKafkaProducer
-            self.producer = AIOKafkaProducer(
-                bootstrap_servers=self.bootstrap_servers
+    async func (receiver) publish(event: Event) {
+        // イベント発行（Kafka）
+        if not receiver.producer:
+                        receiver.producer = AIOKafkaProducer(
+                bootstrap_servers=receiver.bootstrap_servers
             )
-            await self.producer.start()
+            await receiver.producer.start()
             
         event_data = json.dumps({
             'event_id': event.event_id,
@@ -796,97 +839,99 @@ class KafkaEventBus(EventBus):
             'version': event.version
         })
         
-        await self.producer.send(
-            topic=f"events-{event.event_type}",
+        await receiver.producer.send(
+            topic=f// events-{event.event_type},
             value=event_data.encode('utf-8'),
             key=event.event_id.encode('utf-8')
         )
 ```
 
 ### 2. イベント再試行とデッドレターキュー
-```python
-class ReliableEventHandler:
-    """信頼性のあるイベントハンドラー"""
+```go
+package main
+
+type ReliableEventHandler struct {
+    // 信頼性のあるイベントハンドラー
     
-    def __init__(self, handler: EventHandler, max_retries: int = 3):
-        self.handler = handler
-        self.max_retries = max_retries
-        self.retry_count = {}
+    func (receiver) __init__(handler: EventHandler, max_retries int = 3) {
+        receiver.handler = handler
+        receiver.max_retries = max_retries
+        receiver.retry_count = {}
         
-    async def handle(self, event: Event) -> None:
-        """再試行付きイベント処理"""
-        event_key = f"{event.event_id}:{self.handler.__class__.__name__}"
-        retry_count = self.retry_count.get(event_key, 0)
+    async func (receiver) handle(event: Event) {
+        // 再試行付きイベント処理
+        event_key = f// {event.event_id}:{receiver.handler.__class__.__name__}
+        retry_count = receiver.retry_count.get(event_key, 0)
         
         try:
-            await self.handler.handle(event)
+            await receiver.handler.handle(event)
             # 成功時は再試行カウントをクリア
-            self.retry_count.pop(event_key, None)
+            receiver.retry_count.pop(event_key, nil)
             
         except Exception as e:
             retry_count += 1
-            self.retry_count[event_key] = retry_count
+            receiver.retry_count[event_key] = retry_count
             
-            if retry_count <= self.max_retries:
+            if retry_count <= receiver.max_retries:
                 # 指数バックオフで再試行
                 delay = 2 ** (retry_count - 1)
                 await asyncio.sleep(delay)
                 
-                await self.handle(event)
+                await receiver.handle(event)
             else:
                 # 最大再試行数を超えた場合はデッドレターキューに送信
-                await self._send_to_dead_letter_queue(event, e)
-                self.retry_count.pop(event_key, None)
+                await receiver._send_to_dead_letter_queue(event, e)
+                receiver.retry_count.pop(event_key, nil)
                 
-    def can_handle(self, event: Event) -> bool:
-        return self.handler.can_handle(event)
+    func (receiver) can_handle(event: Event) {
+        return receiver.handler.can_handle(event)
         
-    async def _send_to_dead_letter_queue(self, event: Event, error: Exception):
-        """デッドレターキューへの送信"""
+    async func (receiver) _send_to_dead_letter_queue(event: Event, error: Exception) {
+        // デッドレターキューへの送信
         dead_letter_event = DeadLetterEvent(
             original_event=event,
-            handler_class=self.handler.__class__.__name__,
+            handler_class=receiver.handler.__class__.__name__,
             error_message=str(error),
-            retry_count=self.max_retries
+            retry_count=receiver.max_retries
         )
         
         # デッドレターキューに送信（実装は省略）
-        await self._publish_to_dead_letter_queue(dead_letter_event)
+        await receiver._publish_to_dead_letter_queue(dead_letter_event)
 
-class EventProcessingMonitor:
-    """イベント処理監視"""
+type EventProcessingMonitor struct {
+    // イベント処理監視
     
-    def __init__(self):
-        self.processing_stats = defaultdict(dict)
+    func (receiver) __init__() {
+        receiver.processing_stats = defaultdict(dict)
         
-    def record_processing_start(self, event: Event, handler_name: str):
-        """処理開始記録"""
-        key = f"{event.event_id}:{handler_name}"
-        self.processing_stats[key] = {
+    func (receiver) record_processing_start(event: Event, handler_name string) {
+        // 処理開始記録
+        key = f// {event.event_id}:{handler_name}
+        receiver.processing_stats[key] = {
             'start_time': datetime.utcnow(),
             'event_type': event.event_type,
             'handler_name': handler_name
         }
         
-    def record_processing_end(self, event: Event, handler_name: str, success: bool):
-        """処理終了記録"""
-        key = f"{event.event_id}:{handler_name}"
-        if key in self.processing_stats:
-            stats = self.processing_stats[key]
+    func (receiver) record_processing_end(event: Event, handler_name string, success bool) {
+        // 処理終了記録
+        key = f// {event.event_id}:{handler_name}
+        if key in receiver.processing_stats:
+            stats = receiver.processing_stats[key]
             stats['end_time'] = datetime.utcnow()
             stats['success'] = success
             stats['duration'] = (stats['end_time'] - stats['start_time']).total_seconds()
             
-    def get_processing_metrics(self) -> dict:
-        """処理メトリクス取得"""
-        total_events = len(self.processing_stats)
-        successful_events = sum(1 for s in self.processing_stats.values() if s.get('success'))
+    func (receiver) get_processing_metrics() {
+        // 処理メトリクス取得
+        total_events = len(receiver.processing_stats)
+        successful_events = sum(1 for s in receiver.processing_stats.values() if s.get('success'))
         
         return {
             'total_events': total_events,
             'successful_events': successful_events,
             'failure_rate': (total_events - successful_events) / total_events if total_events > 0 else 0,
-            'average_duration': sum(s.get('duration', 0) for s in self.processing_stats.values()) / total_events if total_events > 0 else 0
+            'average_duration': sum(s.get('duration', 0) for s in receiver.processing_stats.values()) / total_events if total_events > 0 else 0
         }
 ```
 
@@ -941,71 +986,74 @@ class EventProcessingMonitor:
 ## 実装時の考慮事項
 
 ### イベント設計
-```python
+```go
+package main
+
 # イベントの後方互換性
-class EventVersioning:
-    """イベントバージョニング"""
+type EventVersioning struct {
+    // イベントバージョニング
     
-    @staticmethod
-    def migrate_event(event: Event) -> Event:
-        """イベント移行"""
-        if event.event_type == "user.registered" and event.version == "1.0":
+        func migrate_event(event: Event) {
+        // イベント移行
+        if event.event_type == // user.registered and event.version == // 1.0:
             # v1.0 から v2.0 への移行
             event.data['full_name'] = event.data.pop('name', '')
-            event.version = "2.0"
+            event.version = // 2.0
         return event
 
 # イベントスキーマ定義
-class EventSchema:
-    """イベントスキーマ"""
+type EventSchema struct {
+    // イベントスキーマ
     
     USER_REGISTERED_V1 = {
-        "type": "object",
-        "properties": {
-            "user_id": {"type": "string"},
-            "email": {"type": "string", "format": "email"},
-            "name": {"type": "string"}
+        // type: // object,
+        // properties: {
+            // user_id: {// type: // string},
+            // email: {// type: // string, // format: // email},
+            // name: {// type: // string}
         },
-        "required": ["user_id", "email", "name"]
+        // required: [// user_id, // email, // name]
     }
     
     USER_REGISTERED_V2 = {
-        "type": "object", 
-        "properties": {
-            "user_id": {"type": "string"},
-            "email": {"type": "string", "format": "email"},
-            "full_name": {"type": "string"},
-            "registration_source": {"type": "string"}
+        // type: // object, 
+        // properties: {
+            // user_id: {// type: // string},
+            // email: {// type: // string, // format: // email},
+            // full_name: {// type: // string},
+            // registration_source: {// type: // string}
         },
-        "required": ["user_id", "email", "full_name"]
+        // required: [// user_id, // email, // full_name]
     }
 ```
 
 ### 冪等性の保証
-```python
-class IdempotentEventHandler:
-    """冪等性を保証するイベントハンドラー"""
+```go
+package main
+
+type IdempotentEventHandler struct {
+    // 冪等性を保証するイベントハンドラー
     
-    def __init__(self, handler: EventHandler, idempotency_store: 'IdempotencyStore'):
-        self.handler = handler
-        self.idempotency_store = idempotency_store
+    func (receiver) __init__(handler: EventHandler, idempotency_store: 'IdempotencyStore') {
+        receiver.handler = handler
+        receiver.idempotency_store = idempotency_store
         
-    async def handle(self, event: Event) -> None:
-        """冪等性チェック付きイベント処理"""
-        handler_key = f"{event.event_id}:{self.handler.__class__.__name__}"
+    async func (receiver) handle(event: Event) {
+        // 冪等性チェック付きイベント処理
+        handler_key = f// {event.event_id}:{receiver.handler.__class__.__name__}
         
         # 既に処理済みかチェック
-        if await self.idempotency_store.is_processed(handler_key):
+        if await receiver.idempotency_store.is_processed(handler_key):
             return
             
         # イベント処理
-        await self.handler.handle(event)
+        await receiver.handler.handle(event)
         
         # 処理済みマーク
-        await self.idempotency_store.mark_processed(handler_key)
+        await receiver.idempotency_store.mark_processed(handler_key)
         
-    def can_handle(self, event: Event) -> bool:
-        return self.handler.can_handle(event)
+    func (receiver) can_handle(event: Event) {
+        return receiver.handler.can_handle(event)
 ```
 
 ## 関連パターン

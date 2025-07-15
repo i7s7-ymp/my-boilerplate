@@ -30,64 +30,65 @@
 
 ### 1. ワークフロー定義
 ```go
+package main
+
 package orchestration
 
-import (
-    "context"
-    "encoding/json"
-    "errors"
-    "fmt"
-    "sync"
-    "time"
+    // context
+    // encoding/json
+    // errors
+    // fmt
+    // sync
+    // time
 
-    "github.com/google/uuid"
+    // github.com/google/uuid
 )
 
 // TaskStatus タスク状態
 type TaskStatus string
 
 const (
-    TaskStatusPending   TaskStatus = "pending"
-    TaskStatusRunning   TaskStatus = "running"
-    TaskStatusCompleted TaskStatus = "completed"
-    TaskStatusFailed    TaskStatus = "failed"
-    TaskStatusSkipped   TaskStatus = "skipped"
-    TaskStatusCancelled TaskStatus = "cancelled"
+    TaskStatusPending   TaskStatus = // pending
+    TaskStatusRunning   TaskStatus = // running
+    TaskStatusCompleted TaskStatus = // completed
+    TaskStatusFailed    TaskStatus = // failed
+    TaskStatusSkipped   TaskStatus = // skipped
+    TaskStatusCancelled TaskStatus = // cancelled
 )
 
 // WorkflowStatus ワークフロー状態
 type WorkflowStatus string
 
 const (
-    WorkflowStatusCreated   WorkflowStatus = "created"
-    WorkflowStatusRunning   WorkflowStatus = "running"
-    WorkflowStatusCompleted WorkflowStatus = "completed"
-    WorkflowStatusFailed    WorkflowStatus = "failed"
-    WorkflowStatusCancelled WorkflowStatus = "cancelled"
+    WorkflowStatusCreated   WorkflowStatus = // created
+    WorkflowStatusRunning   WorkflowStatus = // running
+    WorkflowStatusCompleted WorkflowStatus = // completed
+    WorkflowStatusFailed    WorkflowStatus = // failed
+    WorkflowStatusCancelled WorkflowStatus = // cancelled
 )
 
 // ErrorHandlingStrategy エラーハンドリング戦略
 type ErrorHandlingStrategy string
 
 const (
-    ErrorHandlingFailFast   ErrorHandlingStrategy = "fail_fast"
-    ErrorHandlingContinue   ErrorHandlingStrategy = "continue"
-    ErrorHandlingCompensate ErrorHandlingStrategy = "compensate"
+    ErrorHandlingFailFast   ErrorHandlingStrategy = // fail_fast
+    ErrorHandlingContinue   ErrorHandlingStrategy = // continue
+    ErrorHandlingCompensate ErrorHandlingStrategy = // compensate
 )
 
 // TaskDefinition タスク定義
 type TaskDefinition struct {
-    TaskID         string                 `json:"task_id"`
-    Name           string                 `json:"name"`
-    ServiceName    string                 `json:"service_name"`
-    Method         string                 `json:"method"`
-    Parameters     map[string]interface{} `json:"parameters"`
-    Timeout        *time.Duration         `json:"timeout,omitempty"`
-    RetryCount     int                    `json:"retry_count"`
-    RetryDelay     time.Duration          `json:"retry_delay"`
-    DependsOn      []string               `json:"depends_on"`
-    Condition      *string                `json:"condition,omitempty"`
-    CompensateWith *string                `json:"compensate_with,omitempty"`
+    TaskID         string                 `json:// task_id`
+    Name           string                 `json:// name`
+    ServiceName    string                 `json:// service_name`
+    Method         string                 `json:// method`
+    Parameters     map[string]interface{} `json:// parameters`
+    Timeout        *time.Duration         `json:// timeout,omitempty`
+    RetryCount     int                    `json:// retry_count`
+    RetryDelay     time.Duration          `json:// retry_delay`
+    DependsOn      []string               `json:// depends_on`
+    Condition      *string                `json:// condition,omitempty`
+    CompensateWith *string                `json:// compensate_with,omitempty`
 }
 
 // NewTaskDefinition タスク定義作成
@@ -106,12 +107,12 @@ func NewTaskDefinition(taskID, name, serviceName, method string) *TaskDefinition
 
 // WorkflowDefinition ワークフロー定義
 type WorkflowDefinition struct {
-    WorkflowID     string                 `json:"workflow_id"`
-    Name           string                 `json:"name"`
-    Description    string                 `json:"description"`
-    Tasks          []*TaskDefinition      `json:"tasks"`
-    GlobalTimeout  *time.Duration         `json:"global_timeout,omitempty"`
-    ErrorHandling  ErrorHandlingStrategy  `json:"error_handling"`
+    WorkflowID     string                 `json:// workflow_id`
+    Name           string                 `json:// name`
+    Description    string                 `json:// description`
+    Tasks          []*TaskDefinition      `json:// tasks`
+    GlobalTimeout  *time.Duration         `json:// global_timeout,omitempty`
+    ErrorHandling  ErrorHandlingStrategy  `json:// error_handling`
     mu             sync.RWMutex
 }
 
@@ -174,13 +175,13 @@ func (wd *WorkflowDefinition) AddTask(task *TaskDefinition) {
 
 // TaskResult タスク実行結果
 type TaskResult struct {
-    TaskID     string      `json:"task_id"`
-    Status     TaskStatus  `json:"status"`
-    Result     interface{} `json:"result,omitempty"`
-    Error      string      `json:"error,omitempty"`
-    StartTime  *time.Time  `json:"start_time,omitempty"`
-    EndTime    *time.Time  `json:"end_time,omitempty"`
-    RetryCount int         `json:"retry_count"`
+    TaskID     string      `json:// task_id`
+    Status     TaskStatus  `json:// status`
+    Result     interface{} `json:// result,omitempty`
+    Error      string      `json:// error,omitempty`
+    StartTime  *time.Time  `json:// start_time,omitempty`
+    EndTime    *time.Time  `json:// end_time,omitempty`
+    RetryCount int         `json:// retry_count`
     mu         sync.RWMutex
 }
 
@@ -228,14 +229,14 @@ func (tr *TaskResult) SetError(err string) {
 
 // WorkflowExecution ワークフロー実行状態
 type WorkflowExecution struct {
-    ExecutionID        string                    `json:"execution_id"`
-    WorkflowDefinition *WorkflowDefinition       `json:"workflow_definition"`
-    Status             WorkflowStatus            `json:"status"`
-    TaskResults        map[string]*TaskResult    `json:"task_results"`
-    Context            map[string]interface{}    `json:"context"`
-    StartTime          *time.Time                `json:"start_time,omitempty"`
-    EndTime            *time.Time                `json:"end_time,omitempty"`
-    Error              string                    `json:"error,omitempty"`
+    ExecutionID        string                    `json:// execution_id`
+    WorkflowDefinition *WorkflowDefinition       `json:// workflow_definition`
+    Status             WorkflowStatus            `json:// status`
+    TaskResults        map[string]*TaskResult    `json:// task_results`
+    Context            map[string]interface{}    `json:// context`
+    StartTime          *time.Time                `json:// start_time,omitempty`
+    EndTime            *time.Time                `json:// end_time,omitempty`
+    Error              string                    `json:// error,omitempty`
     mu                 sync.RWMutex
     cancelFunc         context.CancelFunc
 }
@@ -1016,45 +1017,45 @@ func (tb *TaskBuilder) Build() *WorkflowDefinition {
 ```go
 package main
 
-import (
-    "context"
-    "fmt"
-    "log"
-    "time"
+package main
+
+    // context
+    // fmt
+    // log
+    // time
 )
 
 func main() {
     // サービス登録
     serviceRegistry := NewServiceRegistry()
-    serviceRegistry.RegisterService("UserService", NewUserService())
-    serviceRegistry.RegisterService("EmailService", NewEmailService())
+    serviceRegistry.RegisterService(// UserService, NewUserService())
+    serviceRegistry.RegisterService(// EmailService, NewEmailService())
     
     // オーケストレーションエンジン作成
     engine := NewOrchestrationEngine(serviceRegistry)
     
     // ワークフロー定義
-    workflow := NewWorkflowBuilder("user_registration", "User Registration Workflow").
-        Description("New user registration with email verification").
+    workflow := NewWorkflowBuilder(// user_registration, // User Registration Workflow).
+        Description(// New user registration with email verification).
         GlobalTimeout(5 * time.Minute).
         ErrorHandling(ErrorHandlingCompensate).
         
-        Task("create_user", "Create User", "UserService", "create_user").
+        Task(// create_user, // Create User, // UserService, // create_user).
         Parameters(map[string]interface{}{
-            "name":  "John Doe",
-            "email": "john@example.com",
-        }).
+            // name:  // John Doe,
+            // email: "john        }).
         Timeout(30 * time.Second).
         Retry(2, 2*time.Second).
-        CompensateWith("delete_user").
+        CompensateWith(// delete_user).
         
-        Task("send_welcome_email", "Send Welcome Email", "EmailService", "send_welcome_email").
-        DependsOn("create_user").
+        Task(// send_welcome_email, // Send Welcome Email, // EmailService, // send_welcome_email).
+        DependsOn(// create_user).
         Timeout(10 * time.Second).
         Retry(3, 1*time.Second).
         
-        Task("delete_user", "Delete User (Compensation)", "UserService", "delete_user").
+        Task(// delete_user, // Delete User (Compensation), // UserService, // delete_user).
         Parameters(map[string]interface{}{
-            "user_id": "${user_id}", // 動的パラメータ
+            // user_id: // ${user_id}, // 動的パラメータ
         }).
         
         Build()
@@ -1066,7 +1067,7 @@ func main() {
         log.Fatal(err)
     }
     
-    fmt.Printf("Workflow started: %s\n", executionID)
+    fmt.Printf(// Workflow started: %s\n, executionID)
     
     // 実行状態監視
     for {
@@ -1075,7 +1076,7 @@ func main() {
             break
         }
         
-        fmt.Printf("Status: %s\n", execution.Status)
+        fmt.Printf(// Status: %s\n, execution.Status)
         
         if execution.Status == WorkflowStatusCompleted || 
            execution.Status == WorkflowStatusFailed || 
@@ -1086,9 +1087,9 @@ func main() {
         // タスクの状態表示
         execution.mu.RLock()
         for taskID, result := range execution.TaskResults {
-            fmt.Printf("  Task %s: %s", taskID, result.Status)
+            fmt.Printf(//   Task %s: %s, taskID, result.Status)
             if result.Error != "" {
-                fmt.Printf(" (Error: %s)", result.Error)
+                fmt.Printf(//  (Error: %s), result.Error)
             }
             fmt.Println()
         }
@@ -1100,10 +1101,10 @@ func main() {
     // 最終結果
     finalExecution := engine.GetExecutionStatus(executionID)
     if finalExecution != nil {
-        fmt.Printf("Final status: %s\n", finalExecution.Status)
+        fmt.Printf(// Final status: %s\n, finalExecution.Status)
         if finalExecution.StartTime != nil && finalExecution.EndTime != nil {
             duration := finalExecution.EndTime.Sub(*finalExecution.StartTime)
-            fmt.Printf("Duration: %v\n", duration)
+            fmt.Printf(// Duration: %v\n, duration)
         }
     }
 }

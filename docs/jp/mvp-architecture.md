@@ -29,261 +29,252 @@ MVPアーキテクチャ（Model-View-Presenter）は、アプリケーション
 ## 核心コンポーネント
 
 ### 1. Model（モデル）
-```python
-from abc import ABC, abstractmethod
-from typing import List, Optional
-from dataclasses import dataclass
-from datetime import datetime
+```go
+package main
 
-@dataclass
-class User:
-    """ユーザーデータモデル"""
-    id: Optional[int] = None
-    name: str = ""
-    email: str = ""
-    created_at: Optional[datetime] = None
-    is_active: bool = True
+package mvp
 
-class IUserModelListener(ABC):
-    """ユーザーモデルリスナーインターフェース"""
+    // context
+    // sync
+    // time
+)
+
+// User ユーザーデータモデル
+type User struct {
+    ID        *int       `json:// id,omitempty`
+    Name      string     `json:// name`
+    Email     string     `json:// email`
+    CreatedAt *time.Time `json:// created_at,omitempty`
+    IsActive  bool       `json:// is_active`
+}
+
+// NewUser ユーザー作成
+func NewUser(name, email string) *User {
+    now := time.Now()
+    return &User{
+        Name:      name,
+        Email:     email,
+        CreatedAt: &now,
+        IsActive:  true,
+    }
+}
+
+// UserModelListener ユーザーモデルリスナーインターフェース
+type UserModelListener interface {
+    OnUserLoaded(users []*User)
+    OnUserSaved(user *User)
+    OnError(error string)
+}
+
+// UserModel ユーザーモデルインターフェース
+type UserModel interface {
+    AddListener(listener UserModelListener)
+    RemoveListener(listener UserModelListener)
+    LoadUsers(ctx context.Context) error
+    SaveUser(ctx context.Context, user *User) error
+    DeleteUser(ctx context.Context, userID int) error
+}
+
+// UserModelImpl ユーザーモデル実装
+type UserModelImpl struct {
+    userRepository UserRepository
+    listeners      []UserModelListener
+    users          []*User
+    mu             sync.RWMutex
+}
+        // TODO: implement
+        
+        async func (receiver) save_user(user: User) {
+        // ユーザー保存
+        // TODO: implement
+        
+        async func (receiver) delete_user(user_id int) {
+        // ユーザー削除
+        // TODO: implement
+
+type UserModel struct {
+    // ユーザーモデル実装
     
-    @abstractmethod
-    def on_user_loaded(self, users: List[User]) -> None:
-        """ユーザーロード完了通知"""
-        pass
+    func (receiver) __init__(user_repository: 'UserRepository') {
+        receiver.user_repository = user_repository
+        receiver.listeners []IUserModelListener = []
+        receiver.users []User = []
         
-    @abstractmethod
-    def on_user_saved(self, user: User) -> None:
-        """ユーザー保存完了通知"""
-        pass
-        
-    @abstractmethod
-    def on_error(self, error: str) -> None:
-        """エラー通知"""
-        pass
-
-class IUserModel(ABC):
-    """ユーザーモデルインターフェース"""
-    
-    @abstractmethod
-    def add_listener(self, listener: IUserModelListener) -> None:
-        """リスナー追加"""
-        pass
-        
-    @abstractmethod
-    def remove_listener(self, listener: IUserModelListener) -> None:
-        """リスナー削除"""
-        pass
-        
-    @abstractmethod
-    async def load_users(self) -> None:
-        """ユーザー一覧読み込み"""
-        pass
-        
-    @abstractmethod
-    async def save_user(self, user: User) -> None:
-        """ユーザー保存"""
-        pass
-        
-    @abstractmethod
-    async def delete_user(self, user_id: int) -> None:
-        """ユーザー削除"""
-        pass
-
-class UserModel(IUserModel):
-    """ユーザーモデル実装"""
-    
-    def __init__(self, user_repository: 'UserRepository'):
-        self.user_repository = user_repository
-        self.listeners: List[IUserModelListener] = []
-        self.users: List[User] = []
-        
-    def add_listener(self, listener: IUserModelListener) -> None:
-        """リスナー追加"""
-        if listener not in self.listeners:
-            self.listeners.append(listener)
+    func (receiver) add_listener(listener: IUserModelListener) {
+        // リスナー追加
+        if listener not in receiver.listeners:
+            receiver.listeners.append(listener)
             
-    def remove_listener(self, listener: IUserModelListener) -> None:
-        """リスナー削除"""
-        if listener in self.listeners:
-            self.listeners.remove(listener)
+    func (receiver) remove_listener(listener: IUserModelListener) {
+        // リスナー削除
+        if listener in receiver.listeners:
+            receiver.listeners.remove(listener)
             
-    async def load_users(self) -> None:
-        """ユーザー一覧読み込み"""
+    async func (receiver) load_users() {
+        // ユーザー一覧読み込み
         try:
-            self.users = await self.user_repository.get_all_users()
-            self._notify_users_loaded(self.users)
+            receiver.users = await receiver.user_repository.get_all_users()
+            receiver._notify_users_loaded(receiver.users)
         except Exception as e:
-            self._notify_error(f"ユーザー読み込みエラー: {str(e)}")
+            receiver._notify_error(f// ユーザー読み込みエラー: {str(e)})
             
-    async def save_user(self, user: User) -> None:
-        """ユーザー保存"""
+    async func (receiver) save_user(user: User) {
+        // ユーザー保存
         try:
             # バリデーション
             if not user.name.strip():
-                raise ValueError("ユーザー名は必須です")
+                raise ValueError(// ユーザー名は必須です)
             if not user.email.strip():
-                raise ValueError("メールアドレスは必須です")
+                raise ValueError(// メールアドレスは必須です)
                 
-            saved_user = await self.user_repository.save_user(user)
-            self._notify_user_saved(saved_user)
+            saved_user = await receiver.user_repository.save_user(user)
+            receiver._notify_user_saved(saved_user)
             
         except Exception as e:
-            self._notify_error(f"ユーザー保存エラー: {str(e)}")
+            receiver._notify_error(f// ユーザー保存エラー: {str(e)})
             
-    async def delete_user(self, user_id: int) -> None:
-        """ユーザー削除"""
+    async func (receiver) delete_user(user_id int) {
+        // ユーザー削除
         try:
-            await self.user_repository.delete_user(user_id)
+            await receiver.user_repository.delete_user(user_id)
             # ローカルリストからも削除
-            self.users = [u for u in self.users if u.id != user_id]
-            self._notify_users_loaded(self.users)
+            receiver.users = [u for u in receiver.users if u.id != user_id]
+            receiver._notify_users_loaded(receiver.users)
             
         except Exception as e:
-            self._notify_error(f"ユーザー削除エラー: {str(e)}")
+            receiver._notify_error(f// ユーザー削除エラー: {str(e)})
             
-    def _notify_users_loaded(self, users: List[User]) -> None:
-        """ユーザーロード通知"""
-        for listener in self.listeners:
+    func (receiver) _notify_users_loaded(users []User) {
+        // ユーザーロード通知
+        for listener in receiver.listeners:
             listener.on_user_loaded(users)
             
-    def _notify_user_saved(self, user: User) -> None:
-        """ユーザー保存通知"""
-        for listener in self.listeners:
+    func (receiver) _notify_user_saved(user: User) {
+        // ユーザー保存通知
+        for listener in receiver.listeners:
             listener.on_user_saved(user)
             
-    def _notify_error(self, error: str) -> None:
-        """エラー通知"""
-        for listener in self.listeners:
+    func (receiver) _notify_error(error string) {
+        // エラー通知
+        for listener in receiver.listeners:
             listener.on_error(error)
 ```
 
 ### 2. View（ビュー）
-```python
-class IUserView(ABC):
-    """ユーザービューインターフェース"""
+```go
+package main
+
+type IUserView struct {
+    // ユーザービューインターフェース
     
-    @abstractmethod
-    def show_users(self, users: List[User]) -> None:
-        """ユーザー一覧表示"""
-        pass
+        func (receiver) show_users(users []User) {
+        // ユーザー一覧表示
+        // TODO: implement
         
-    @abstractmethod
-    def show_loading(self) -> None:
-        """ローディング表示"""
-        pass
+        func (receiver) show_loading() {
+        // ローディング表示
+        // TODO: implement
         
-    @abstractmethod
-    def hide_loading(self) -> None:
-        """ローディング非表示"""
-        pass
+        func (receiver) hide_loading() {
+        // ローディング非表示
+        // TODO: implement
         
-    @abstractmethod
-    def show_error(self, message: str) -> None:
-        """エラーメッセージ表示"""
-        pass
+        func (receiver) show_error(message string) {
+        // エラーメッセージ表示
+        // TODO: implement
         
-    @abstractmethod
-    def show_success(self, message: str) -> None:
-        """成功メッセージ表示"""
-        pass
+        func (receiver) show_success(message string) {
+        // 成功メッセージ表示
+        // TODO: implement
         
-    @abstractmethod
-    def clear_form(self) -> None:
-        """フォームクリア"""
-        pass
+        func (receiver) clear_form() {
+        // フォームクリア
+        // TODO: implement
         
-    @abstractmethod
-    def get_user_form_data(self) -> User:
-        """フォームデータ取得"""
-        pass
+        func (receiver) get_user_form_data() {
+        // フォームデータ取得
+        // TODO: implement
         
-    @abstractmethod
-    def set_presenter(self, presenter: 'IUserPresenter') -> None:
-        """プレゼンター設定"""
-        pass
+        func (receiver) set_presenter(presenter: 'IUserPresenter') {
+        // プレゼンター設定
+        // TODO: implement
 
 # Web実装例（Flask）
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 
-class WebUserView(IUserView):
-    """Webベースのユーザービュー"""
+type WebUserView struct {
+    // Webベースのユーザービュー
     
-    def __init__(self, app: Flask):
-        self.app = app
-        self.presenter: Optional['IUserPresenter'] = None
-        self.users_data: List[User] = []
-        self.is_loading = False
-        self.setup_routes()
+    func (receiver) __init__(app: Flask) {
+        receiver.app = app
+        receiver.presenter *'IUserPresenter' = nil
+        receiver.users_data []User = []
+        receiver.is_loading = false
+        receiver.setup_routes()
         
-    def set_presenter(self, presenter: 'IUserPresenter') -> None:
-        """プレゼンター設定"""
-        self.presenter = presenter
+    func (receiver) set_presenter(presenter: 'IUserPresenter') {
+        // プレゼンター設定
+        receiver.presenter = presenter
         
-    def setup_routes(self):
-        """ルート設定"""
-        @self.app.route('/users')
-        def users_page():
-            if self.presenter:
-                asyncio.create_task(self.presenter.load_users())
+    func (receiver) setup_routes() {
+        // ルート設定
+                def users_page():
+            if receiver.presenter:
+                asyncio.create_task(receiver.presenter.load_users())
             return render_template('users.html', 
-                                 users=self.users_data, 
-                                 loading=self.is_loading)
+                                 users=receiver.users_data, 
+                                 loading=receiver.is_loading)
                                  
-        @self.app.route('/users/new', methods=['GET', 'POST'])
-        def new_user():
+                def new_user():
             if request.method == 'POST':
-                if self.presenter:
-                    asyncio.create_task(self.presenter.save_user())
+                if receiver.presenter:
+                    asyncio.create_task(receiver.presenter.save_user())
                 return redirect(url_for('users_page'))
             return render_template('user_form.html')
             
-        @self.app.route('/users/<int:user_id>/delete', methods=['POST'])
-        def delete_user(user_id):
-            if self.presenter:
-                asyncio.create_task(self.presenter.delete_user(user_id))
+                func delete_user(user_id) {
+            if receiver.presenter:
+                asyncio.create_task(receiver.presenter.delete_user(user_id))
             return redirect(url_for('users_page'))
             
-        @self.app.route('/api/users')
-        def api_users():
+                def api_users():
             return jsonify([{
                 'id': u.id,
                 'name': u.name,
                 'email': u.email,
-                'created_at': u.created_at.isoformat() if u.created_at else None,
+                'created_at': u.created_at.isoformat() if u.created_at else nil,
                 'is_active': u.is_active
-            } for u in self.users_data])
+            } for u in receiver.users_data])
             
-    def show_users(self, users: List[User]) -> None:
-        """ユーザー一覧表示"""
-        self.users_data = users
-        self.hide_loading()
+    func (receiver) show_users(users []User) {
+        // ユーザー一覧表示
+        receiver.users_data = users
+        receiver.hide_loading()
         
-    def show_loading(self) -> None:
-        """ローディング表示"""
-        self.is_loading = True
+    func (receiver) show_loading() {
+        // ローディング表示
+        receiver.is_loading = true
         
-    def hide_loading(self) -> None:
-        """ローディング非表示"""
-        self.is_loading = False
+    func (receiver) hide_loading() {
+        // ローディング非表示
+        receiver.is_loading = false
         
-    def show_error(self, message: str) -> None:
-        """エラーメッセージ表示"""
+    func (receiver) show_error(message string) {
+        // エラーメッセージ表示
         flash(message, 'error')
-        self.hide_loading()
+        receiver.hide_loading()
         
-    def show_success(self, message: str) -> None:
-        """成功メッセージ表示"""
+    func (receiver) show_success(message string) {
+        // 成功メッセージ表示
         flash(message, 'success')
-        self.hide_loading()
+        receiver.hide_loading()
         
-    def clear_form(self) -> None:
-        """フォームクリア"""
+    func (receiver) clear_form() {
+        // フォームクリア
         # Webの場合はリダイレクトで処理
-        pass
+        // TODO: implement
         
-    def get_user_form_data(self) -> User:
-        """フォームデータ取得"""
+    func (receiver) get_user_form_data() {
+        // フォームデータ取得
         return User(
             name=request.form.get('name', ''),
             email=request.form.get('email', ''),
@@ -291,634 +282,625 @@ class WebUserView(IUserView):
         )
 
 # GUI実装例（tkinter）
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
 
-class TkinterUserView(IUserView):
-    """tkinterベースのユーザービュー"""
+type TkinterUserView struct {
+    // tkinterベースのユーザービュー
     
-    def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("ユーザー管理")
-        self.root.geometry("800x600")
+    func (receiver) __init__() {
+        receiver.root = tk.Tk()
+        receiver.root.title(// ユーザー管理)
+        receiver.root.geometry(// 800x600)
         
-        self.presenter: Optional['IUserPresenter'] = None
-        self.users_data: List[User] = []
+        receiver.presenter *'IUserPresenter' = nil
+        receiver.users_data []User = []
         
-        self.setup_ui()
+        receiver.setup_ui()
         
-    def set_presenter(self, presenter: 'IUserPresenter') -> None:
-        """プレゼンター設定"""
-        self.presenter = presenter
+    func (receiver) set_presenter(presenter: 'IUserPresenter') {
+        // プレゼンター設定
+        receiver.presenter = presenter
         
-    def setup_ui(self):
-        """UI設定"""
+    func (receiver) setup_ui() {
+        // UI設定
         # メインフレーム
-        main_frame = ttk.Frame(self.root)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        main_frame = ttk.Frame(receiver.root)
+        main_frame.pack(fill=tk.BOTH, expand=true, padx=10, pady=10)
         
         # ボタンフレーム
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(fill=tk.X, pady=(0, 10))
         
-        ttk.Button(button_frame, text="読み込み", 
-                  command=self._load_users).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(button_frame, text="新規作成", 
-                  command=self._create_user).pack(side=tk.LEFT, padx=(0, 5))
-        ttk.Button(button_frame, text="削除", 
-                  command=self._delete_selected_user).pack(side=tk.LEFT)
+        ttk.Button(button_frame, text=// 読み込み, 
+                  command=receiver._load_users).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(button_frame, text=// 新規作成, 
+                  command=receiver._create_user).pack(side=tk.LEFT, padx=(0, 5))
+        ttk.Button(button_frame, text=// 削除, 
+                  command=receiver._delete_selected_user).pack(side=tk.LEFT)
                   
         # ユーザーリスト
-        self.tree = ttk.Treeview(main_frame, columns=('ID', 'Name', 'Email', 'Active'), show='headings')
-        self.tree.heading('#1', text='ID')
-        self.tree.heading('#2', text='名前')
-        self.tree.heading('#3', text='メール')
-        self.tree.heading('#4', text='アクティブ')
+        receiver.tree = ttk.Treeview(main_frame, columns=('ID', 'Name', 'Email', 'Active'), show='headings')
+        receiver.tree.heading('#1', text='ID')
+        receiver.tree.heading('#2', text='名前')
+        receiver.tree.heading('#3', text='メール')
+        receiver.tree.heading('#4', text='アクティブ')
         
         # スクロールバー
-        scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        self.tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar = ttk.Scrollbar(main_frame, orient=tk.VERTICAL, command=receiver.tree.yview)
+        receiver.tree.configure(yscrollcommand=scrollbar.set)
         
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        receiver.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=true)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         
         # プログレスバー
-        self.progress = ttk.Progressbar(main_frame, mode='indeterminate')
+        receiver.progress = ttk.Progressbar(main_frame, mode='indeterminate')
         
-    def show_users(self, users: List[User]) -> None:
-        """ユーザー一覧表示"""
-        self.users_data = users
+    func (receiver) show_users(users []User) {
+        // ユーザー一覧表示
+        receiver.users_data = users
         
         # ツリーをクリア
-        for item in self.tree.get_children():
-            self.tree.delete(item)
+        for item in receiver.tree.get_children():
+            receiver.tree.delete(item)
             
         # ユーザーを追加
         for user in users:
-            self.tree.insert('', tk.END, values=(
+            receiver.tree.insert('', tk.END, values=(
                 user.id,
                 user.name,
                 user.email,
                 'はい' if user.is_active else 'いいえ'
             ))
             
-        self.hide_loading()
+        receiver.hide_loading()
         
-    def show_loading(self) -> None:
-        """ローディング表示"""
-        self.progress.pack(fill=tk.X, pady=5)
-        self.progress.start()
+    func (receiver) show_loading() {
+        // ローディング表示
+        receiver.progress.pack(fill=tk.X, pady=5)
+        receiver.progress.start()
         
-    def hide_loading(self) -> None:
-        """ローディング非表示"""
-        self.progress.stop()
-        self.progress.pack_forget()
+    func (receiver) hide_loading() {
+        // ローディング非表示
+        receiver.progress.stop()
+        receiver.progress.pack_forget()
         
-    def show_error(self, message: str) -> None:
-        """エラーメッセージ表示"""
-        messagebox.showerror("エラー", message)
-        self.hide_loading()
+    func (receiver) show_error(message string) {
+        // エラーメッセージ表示
+        messagebox.showerror(// エラー, message)
+        receiver.hide_loading()
         
-    def show_success(self, message: str) -> None:
-        """成功メッセージ表示"""
-        messagebox.showinfo("成功", message)
-        self.hide_loading()
+    func (receiver) show_success(message string) {
+        // 成功メッセージ表示
+        messagebox.showinfo(// 成功, message)
+        receiver.hide_loading()
         
-    def clear_form(self) -> None:
-        """フォームクリア"""
+    func (receiver) clear_form() {
+        // フォームクリア
         # 選択をクリア
-        for item in self.tree.selection():
-            self.tree.selection_remove(item)
+        for item in receiver.tree.selection():
+            receiver.tree.selection_remove(item)
             
-    def get_user_form_data(self) -> User:
-        """フォームデータ取得"""
+    func (receiver) get_user_form_data() {
+        // フォームデータ取得
         # ダイアログから入力を取得
-        name = simpledialog.askstring("ユーザー作成", "名前を入力してください:")
+        name = simpledialog.askstring(// ユーザー作成, // 名前を入力してください:)
         if not name:
-            raise ValueError("名前が入力されていません")
+            raise ValueError(// 名前が入力されていません)
             
-        email = simpledialog.askstring("ユーザー作成", "メールアドレスを入力してください:")
+        email = simpledialog.askstring(// ユーザー作成, // メールアドレスを入力してください:)
         if not email:
-            raise ValueError("メールアドレスが入力されていません")
+            raise ValueError(// メールアドレスが入力されていません)
             
         return User(name=name, email=email)
         
-    def _load_users(self):
-        """ユーザー読み込み"""
-        if self.presenter:
-            asyncio.create_task(self.presenter.load_users())
+    func (receiver) _load_users() {
+        // ユーザー読み込み
+        if receiver.presenter:
+            asyncio.create_task(receiver.presenter.load_users())
             
-    def _create_user(self):
-        """ユーザー作成"""
-        if self.presenter:
-            asyncio.create_task(self.presenter.save_user())
+    func (receiver) _create_user() {
+        // ユーザー作成
+        if receiver.presenter:
+            asyncio.create_task(receiver.presenter.save_user())
             
-    def _delete_selected_user(self):
-        """選択されたユーザーを削除"""
-        selection = self.tree.selection()
+    func (receiver) _delete_selected_user() {
+        // 選択されたユーザーを削除
+        selection = receiver.tree.selection()
         if not selection:
-            messagebox.showwarning("警告", "削除するユーザーを選択してください")
+            messagebox.showwarning(// 警告, // 削除するユーザーを選択してください)
             return
             
         item = selection[0]
-        user_id = self.tree.item(item)['values'][0]
+        user_id = receiver.tree.item(item)['values'][0]
         
-        if messagebox.askyesno("確認", "選択されたユーザーを削除しますか？"):
-            if self.presenter:
-                asyncio.create_task(self.presenter.delete_user(user_id))
+        if messagebox.askyesno(// 確認, // 選択されたユーザーを削除しますか？):
+            if receiver.presenter:
+                asyncio.create_task(receiver.presenter.delete_user(user_id))
                 
-    def run(self):
-        """アプリケーション開始"""
-        self.root.mainloop()
+    func (receiver) run() {
+        // アプリケーション開始
+        receiver.root.mainloop()
 ```
 
 ### 3. Presenter（プレゼンター）
-```python
-class IUserPresenter(ABC):
-    """ユーザープレゼンターインターフェース"""
-    
-    @abstractmethod
-    async def load_users(self) -> None:
-        """ユーザー読み込み"""
-        pass
-        
-    @abstractmethod
-    async def save_user(self) -> None:
-        """ユーザー保存"""
-        pass
-        
-    @abstractmethod
-    async def delete_user(self, user_id: int) -> None:
-        """ユーザー削除"""
-        pass
+```go
+package main
 
-class UserPresenter(IUserPresenter, IUserModelListener):
-    """ユーザープレゼンター実装"""
+type IUserPresenter struct {
+    // ユーザープレゼンターインターフェース
     
-    def __init__(self, view: IUserView, model: IUserModel):
-        self.view = view
-        self.model = model
+        async func (receiver) load_users() {
+        // ユーザー読み込み
+        // TODO: implement
+        
+        async func (receiver) save_user() {
+        // ユーザー保存
+        // TODO: implement
+        
+        async func (receiver) delete_user(user_id int) {
+        // ユーザー削除
+        // TODO: implement
+
+type UserPresenter struct {
+    // ユーザープレゼンター実装
+    
+    func (receiver) __init__(view: IUserView, model: IUserModel) {
+        receiver.view = view
+        receiver.model = model
         
         # ビューにプレゼンターを設定
-        self.view.set_presenter(self)
+        receiver.view.set_presenter(self)
         
         # モデルのリスナーとして登録
-        self.model.add_listener(self)
+        receiver.model.add_listener(self)
         
-    async def load_users(self) -> None:
-        """ユーザー読み込み"""
-        self.view.show_loading()
-        await self.model.load_users()
+    async func (receiver) load_users() {
+        // ユーザー読み込み
+        receiver.view.show_loading()
+        await receiver.model.load_users()
         
-    async def save_user(self) -> None:
-        """ユーザー保存"""
+    async func (receiver) save_user() {
+        // ユーザー保存
         try:
-            user_data = self.view.get_user_form_data()
-            self.view.show_loading()
-            await self.model.save_user(user_data)
+            user_data = receiver.view.get_user_form_data()
+            receiver.view.show_loading()
+            await receiver.model.save_user(user_data)
             
         except ValueError as e:
-            self.view.show_error(str(e))
+            receiver.view.show_error(str(e))
         except Exception as e:
-            self.view.show_error(f"予期しないエラー: {str(e)}")
+            receiver.view.show_error(f// 予期しないエラー: {str(e)})
             
-    async def delete_user(self, user_id: int) -> None:
-        """ユーザー削除"""
-        self.view.show_loading()
-        await self.model.delete_user(user_id)
+    async func (receiver) delete_user(user_id int) {
+        // ユーザー削除
+        receiver.view.show_loading()
+        await receiver.model.delete_user(user_id)
         
     # IUserModelListener の実装
-    def on_user_loaded(self, users: List[User]) -> None:
-        """ユーザーロード完了通知"""
-        self.view.show_users(users)
+    func (receiver) on_user_loaded(users []User) {
+        // ユーザーロード完了通知
+        receiver.view.show_users(users)
         
-    def on_user_saved(self, user: User) -> None:
-        """ユーザー保存完了通知"""
-        self.view.show_success("ユーザーを保存しました")
-        self.view.clear_form()
+    func (receiver) on_user_saved(user: User) {
+        // ユーザー保存完了通知
+        receiver.view.show_success(// ユーザーを保存しました)
+        receiver.view.clear_form()
         # 一覧を再読み込み
-        asyncio.create_task(self.model.load_users())
+        asyncio.create_task(receiver.model.load_users())
         
-    def on_error(self, error: str) -> None:
-        """エラー通知"""
-        self.view.show_error(error)
+    func (receiver) on_error(error string) {
+        // エラー通知
+        receiver.view.show_error(error)
 
 # 高度なプレゼンター実装例
-class AdvancedUserPresenter(UserPresenter):
-    """高度なユーザープレゼンター"""
+type AdvancedUserPresenter struct {
+    // 高度なユーザープレゼンター
     
     def __init__(self, view: IUserView, model: IUserModel, 
                  validator: 'UserValidator', logger: 'Logger'):
         super().__init__(view, model)
-        self.validator = validator
-        self.logger = logger
-        self.operation_history: List[str] = []
+        receiver.validator = validator
+        receiver.logger = logger
+        receiver.operation_history []str = []
         
-    async def save_user(self) -> None:
-        """バリデーション付きユーザー保存"""
+    async func (receiver) save_user() {
+        // バリデーション付きユーザー保存
         try:
-            user_data = self.view.get_user_form_data()
+            user_data = receiver.view.get_user_form_data()
             
             # バリデーション
-            validation_errors = self.validator.validate_user(user_data)
+            validation_errors = receiver.validator.validate_user(user_data)
             if validation_errors:
-                error_message = "\\n".join(validation_errors)
-                self.view.show_error(f"入力エラー:\\n{error_message}")
+                error_message = // \\n.join(validation_errors)
+                receiver.view.show_error(f// 入力エラー:\\n{error_message})
                 return
                 
-            self.view.show_loading()
+            receiver.view.show_loading()
             
             # 操作ログ
-            self.logger.info(f"User save attempt: {user_data.email}")
-            self.operation_history.append(f"保存試行: {user_data.name}")
+            receiver.logger.info(f// User save attempt: {user_data.email})
+            receiver.operation_history.append(f// 保存試行: {user_data.name})
             
-            await self.model.save_user(user_data)
+            await receiver.model.save_user(user_data)
             
         except ValueError as e:
-            self.logger.warning(f"Validation error: {str(e)}")
-            self.view.show_error(str(e))
+            receiver.logger.warning(f// Validation error: {str(e)})
+            receiver.view.show_error(str(e))
         except Exception as e:
-            self.logger.error(f"Unexpected error during user save: {str(e)}")
-            self.view.show_error(f"予期しないエラー: {str(e)}")
+            receiver.logger.error(f// Unexpected error during user save: {str(e)})
+            receiver.view.show_error(f// 予期しないエラー: {str(e)})
             
-    async def delete_user(self, user_id: int) -> None:
-        """確認付きユーザー削除"""
+    async func (receiver) delete_user(user_id int) {
+        // 確認付きユーザー削除
         try:
-            self.view.show_loading()
+            receiver.view.show_loading()
             
             # 操作ログ
-            self.logger.info(f"User delete attempt: ID {user_id}")
-            self.operation_history.append(f"削除試行: ID {user_id}")
+            receiver.logger.info(f// User delete attempt: ID {user_id})
+            receiver.operation_history.append(f// 削除試行: ID {user_id})
             
-            await self.model.delete_user(user_id)
+            await receiver.model.delete_user(user_id)
             
         except Exception as e:
-            self.logger.error(f"Error during user delete: {str(e)}")
-            self.view.show_error(f"削除エラー: {str(e)}")
+            receiver.logger.error(f// Error during user delete: {str(e)})
+            receiver.view.show_error(f// 削除エラー: {str(e)})
             
-    def get_operation_history(self) -> List[str]:
-        """操作履歴取得"""
-        return self.operation_history.copy()
+    func (receiver) get_operation_history() {
+        // 操作履歴取得
+        return receiver.operation_history.copy()
 
 # バリデーター
-class UserValidator:
-    """ユーザーバリデーター"""
+type UserValidator struct {
+    // ユーザーバリデーター
     
-    def validate_user(self, user: User) -> List[str]:
-        """ユーザーバリデーション"""
+    func (receiver) validate_user(user: User) {
+        // ユーザーバリデーション
         errors = []
         
         # 名前チェック
         if not user.name or not user.name.strip():
-            errors.append("名前は必須です")
+            errors.append(// 名前は必須です)
         elif len(user.name.strip()) < 2:
-            errors.append("名前は2文字以上で入力してください")
+            errors.append(// 名前は2文字以上で入力してください)
             
         # メールアドレスチェック
         if not user.email or not user.email.strip():
-            errors.append("メールアドレスは必須です")
-        elif not self._is_valid_email(user.email):
-            errors.append("有効なメールアドレスを入力してください")
+            errors.append(// メールアドレスは必須です)
+        elif not receiver._is_valid_email(user.email):
+            errors.append(// 有効なメールアドレスを入力してください)
             
         return errors
         
-    def _is_valid_email(self, email: str) -> bool:
-        """メールアドレス形式チェック"""
-        import re
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
-        return re.match(pattern, email) is not None
+    func (receiver) _is_valid_email(email string) {
+        // メールアドレス形式チェック
+                pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'
+        return re.match(pattern, email) is not nil
 ```
 
 ## MVPパターンの特徴
 
 ### 1. 完全な分離
-```python
+```go
+package main
+
 # ビューはモデルを直接知らない
-class OrderView(IOrderView):
-    def __init__(self):
-        self.presenter: Optional['IOrderPresenter'] = None
+type OrderView struct {
+    func (receiver) __init__() {
+        receiver.presenter *'IOrderPresenter' = nil
         # モデルへの直接的な参照はない
         
-    def set_presenter(self, presenter: 'IOrderPresenter') -> None:
-        self.presenter = presenter
+    func (receiver) set_presenter(presenter: 'IOrderPresenter') {
+        receiver.presenter = presenter
         
-    def on_submit_button_clicked(self):
+    func (receiver) on_submit_button_clicked() {
         # プレゼンターを通してのみ操作
-        if self.presenter:
-            self.presenter.submit_order()
+        if receiver.presenter:
+            receiver.presenter.submit_order()
 
 # モデルもビューを直接知らない
-class OrderModel(IOrderModel):
-    def __init__(self):
-        self.listeners: List[IOrderModelListener] = []
+type OrderModel struct {
+    func (receiver) __init__() {
+        receiver.listeners []IOrderModelListener = []
         # ビューへの直接的な参照はない
         
-    def process_order(self, order: Order):
+    func (receiver) process_order(order: Order) {
         # ビジネスロジック実行
-        result = self._validate_and_process(order)
+        result = receiver._validate_and_process(order)
         
         # リスナー（プレゼンター）に通知
         if result.success:
-            self._notify_order_processed(result.order)
+            receiver._notify_order_processed(result.order)
         else:
-            self._notify_error(result.error_message)
+            receiver._notify_error(result.error_message)
 ```
 
 ### 2. テスタビリティ
-```python
-import unittest
-from unittest.mock import Mock, AsyncMock
+```go
+package main
 
-class TestUserPresenter(unittest.TestCase):
-    """ユーザープレゼンターのテスト"""
+
+type TestUserPresenter struct {
+    // ユーザープレゼンターのテスト
     
-    def setUp(self):
-        self.mock_view = Mock(spec=IUserView)
-        self.mock_model = Mock(spec=IUserModel)
-        self.presenter = UserPresenter(self.mock_view, self.mock_model)
+    func (receiver) setUp() {
+        receiver.mock_view = Mock(spec=IUserView)
+        receiver.mock_model = Mock(spec=IUserModel)
+        receiver.presenter = UserPresenter(receiver.mock_view, receiver.mock_model)
         
-    async def test_load_users_shows_loading(self):
-        """ユーザー読み込み時にローディング表示"""
+    async func (receiver) test_load_users_shows_loading() {
+        // ユーザー読み込み時にローディング表示
         # Arrange
-        self.mock_model.load_users = AsyncMock()
+        receiver.mock_model.load_users = AsyncMock()
         
         # Act
-        await self.presenter.load_users()
+        await receiver.presenter.load_users()
         
         # Assert
-        self.mock_view.show_loading.assert_called_once()
-        self.mock_model.load_users.assert_called_once()
+        receiver.mock_view.show_loading.assert_called_once()
+        receiver.mock_model.load_users.assert_called_once()
         
-    async def test_save_user_with_valid_data(self):
-        """有効なデータでのユーザー保存"""
+    async func (receiver) test_save_user_with_valid_data() {
+        // 有効なデータでのユーザー保存
         # Arrange
-        test_user = User(name="Test User", email="test@example.com")
-        self.mock_view.get_user_form_data.return_value = test_user
-        self.mock_model.save_user = AsyncMock()
+        test_user = User(name=// Test User, email="test        receiver.mock_view.get_user_form_data.return_value = test_user
+        receiver.mock_model.save_user = AsyncMock()
         
         # Act
-        await self.presenter.save_user()
+        await receiver.presenter.save_user()
         
         # Assert
-        self.mock_view.show_loading.assert_called_once()
-        self.mock_model.save_user.assert_called_once_with(test_user)
+        receiver.mock_view.show_loading.assert_called_once()
+        receiver.mock_model.save_user.assert_called_once_with(test_user)
         
-    async def test_save_user_with_invalid_data(self):
-        """無効なデータでのユーザー保存"""
+    async func (receiver) test_save_user_with_invalid_data() {
+        // 無効なデータでのユーザー保存
         # Arrange
-        self.mock_view.get_user_form_data.side_effect = ValueError("名前は必須です")
+        receiver.mock_view.get_user_form_data.side_effect = ValueError(// 名前は必須です)
         
         # Act
-        await self.presenter.save_user()
+        await receiver.presenter.save_user()
         
         # Assert
-        self.mock_view.show_error.assert_called_once_with("名前は必須です")
-        self.mock_model.save_user.assert_not_called()
+        receiver.mock_view.show_error.assert_called_once_with(// 名前は必須です)
+        receiver.mock_model.save_user.assert_not_called()
         
-    def test_on_user_loaded_updates_view(self):
-        """ユーザーロード完了時のビュー更新"""
+    func (receiver) test_on_user_loaded_updates_view() {
+        // ユーザーロード完了時のビュー更新
         # Arrange
         test_users = [
-            User(id=1, name="User 1", email="user1@example.com"),
-            User(id=2, name="User 2", email="user2@example.com")
-        ]
+            User(id=1, name=// User 1, email=// user1            User(id=2, name=User 2// , email=user2        ]
         
         # Act
-        self.presenter.on_user_loaded(test_users)
+        receiver.presenter.on_user_loaded(test_users)
         
         # Assert
-        self.mock_view.show_users.assert_called_once_with(test_users)
+        receiver.mock_view.show_users.assert_called_once_with(test_users)
         
-    def test_on_error_shows_error_message(self):
-        """エラー時のエラーメッセージ表示"""
+    func (receiver) test_on_error_shows_error_message() {
+        // エラー時のエラーメッセージ表示
         # Arrange
-        error_message = "データベース接続エラー"
+        error_message = // データベース接続エラー
         
         # Act
-        self.presenter.on_error(error_message)
+        receiver.presenter.on_error(error_message)
         
         # Assert
-        self.mock_view.show_error.assert_called_once_with(error_message)
+        receiver.mock_view.show_error.assert_called_once_with(error_message)
 
-class TestUserModel(unittest.TestCase):
-    """ユーザーモデルのテスト"""
+type TestUserModel struct {
+    // ユーザーモデルのテスト
     
-    def setUp(self):
-        self.mock_repository = Mock()
-        self.mock_listener = Mock(spec=IUserModelListener)
-        self.model = UserModel(self.mock_repository)
-        self.model.add_listener(self.mock_listener)
+    func (receiver) setUp() {
+        receiver.mock_repository = Mock()
+        receiver.mock_listener = Mock(spec=IUserModelListener)
+        receiver.model = UserModel(receiver.mock_repository)
+        receiver.model.add_listener(receiver.mock_listener)
         
-    async def test_load_users_success(self):
-        """ユーザー読み込み成功"""
+    async func (receiver) test_load_users_success() {
+        // ユーザー読み込み成功
         # Arrange
-        test_users = [User(id=1, name="Test", email="test@example.com")]
-        self.mock_repository.get_all_users = AsyncMock(return_value=test_users)
+        test_users = [User(id=1, name=// Test, email="test        receiver.mock_repository.get_all_users = AsyncMock(return_value=test_users)
         
         # Act
-        await self.model.load_users()
+        await receiver.model.load_users()
         
         # Assert
-        self.mock_listener.on_user_loaded.assert_called_once_with(test_users)
+        receiver.mock_listener.on_user_loaded.assert_called_once_with(test_users)
         
-    async def test_load_users_failure(self):
-        """ユーザー読み込み失敗"""
+    async func (receiver) test_load_users_failure() {
+        // ユーザー読み込み失敗
         # Arrange
-        self.mock_repository.get_all_users = AsyncMock(
-            side_effect=Exception("DB Error")
+        receiver.mock_repository.get_all_users = AsyncMock(
+            side_effect=Exception(// DB Error)
         )
         
         # Act
-        await self.model.load_users()
+        await receiver.model.load_users()
         
         # Assert
-        self.mock_listener.on_error.assert_called_once()
+        receiver.mock_listener.on_error.assert_called_once()
         
-    async def test_save_user_validation_error(self):
-        """ユーザー保存時のバリデーションエラー"""
+    async func (receiver) test_save_user_validation_error() {
+        // ユーザー保存時のバリデーションエラー
         # Arrange
-        invalid_user = User(name="", email="test@example.com")
-        
+        invalid_user = User(name=// ", email=test        
         # Act
-        await self.model.save_user(invalid_user)
+        await receiver.model.save_user(invalid_user)
         
         # Assert
-        self.mock_listener.on_error.assert_called_once()
-        self.mock_repository.save_user.assert_not_called()
+        receiver.mock_listener.on_error.assert_called_once()
+        receiver.mock_repository.save_user.assert_not_called()
 ```
 
 ## 実装パターン
 
 ### 1. 非同期MVP
-```python
-import asyncio
-from typing import Awaitable
+```go
+package main
 
-class AsyncUserPresenter(IUserPresenter, IUserModelListener):
-    """非同期ユーザープレゼンター"""
+
+type AsyncUserPresenter struct {
+    // 非同期ユーザープレゼンター
     
-    def __init__(self, view: IUserView, model: IUserModel):
-        self.view = view
-        self.model = model
-        self.current_tasks: set = set()
+    func (receiver) __init__(view: IUserView, model: IUserModel) {
+        receiver.view = view
+        receiver.model = model
+        receiver.current_tasks: set = set()
         
-        self.view.set_presenter(self)
-        self.model.add_listener(self)
+        receiver.view.set_presenter(self)
+        receiver.model.add_listener(self)
         
-    async def load_users(self) -> None:
-        """非同期ユーザー読み込み"""
-        await self._execute_async_operation(self.model.load_users())
+    async func (receiver) load_users() {
+        // 非同期ユーザー読み込み
+        await receiver._execute_async_operation(receiver.model.load_users())
         
-    async def save_user(self) -> None:
-        """非同期ユーザー保存"""
+    async func (receiver) save_user() {
+        // 非同期ユーザー保存
         try:
-            user_data = self.view.get_user_form_data()
-            await self._execute_async_operation(self.model.save_user(user_data))
+            user_data = receiver.view.get_user_form_data()
+            await receiver._execute_async_operation(receiver.model.save_user(user_data))
         except ValueError as e:
-            self.view.show_error(str(e))
+            receiver.view.show_error(str(e))
             
-    async def _execute_async_operation(self, operation: Awaitable) -> None:
-        """非同期操作の実行管理"""
-        self.view.show_loading()
+    async func (receiver) _execute_async_operation(operation: Awaitable) {
+        // 非同期操作の実行管理
+        receiver.view.show_loading()
         
         task = asyncio.create_task(operation)
-        self.current_tasks.add(task)
+        receiver.current_tasks.add(task)
         
         try:
             await task
         finally:
-            self.current_tasks.discard(task)
+            receiver.current_tasks.discard(task)
             
-    async def cancel_all_operations(self) -> None:
-        """全操作のキャンセル"""
-        for task in self.current_tasks:
+    async func (receiver) cancel_all_operations() {
+        // 全操作のキャンセル
+        for task in receiver.current_tasks:
             task.cancel()
             
         # 完了を待つ
-        if self.current_tasks:
-            await asyncio.gather(*self.current_tasks, return_exceptions=True)
+        if receiver.current_tasks:
+            await asyncio.gather(*receiver.current_tasks, return_exceptions=true)
             
-        self.view.hide_loading()
+        receiver.view.hide_loading()
 
-class ThreadSafeUserPresenter(UserPresenter):
-    """スレッドセーフなユーザープレゼンター"""
+type ThreadSafeUserPresenter struct {
+    // スレッドセーフなユーザープレゼンター
     
-    def __init__(self, view: IUserView, model: IUserModel):
+    func (receiver) __init__(view: IUserView, model: IUserModel) {
         super().__init__(view, model)
-        self._lock = asyncio.Lock()
+        receiver._lock = asyncio.Lock()
         
-    async def load_users(self) -> None:
-        """スレッドセーフなユーザー読み込み"""
-        async with self._lock:
+    async func (receiver) load_users() {
+        // スレッドセーフなユーザー読み込み
+        async with receiver._lock:
             await super().load_users()
             
-    async def save_user(self) -> None:
-        """スレッドセーフなユーザー保存"""
-        async with self._lock:
+    async func (receiver) save_user() {
+        // スレッドセーフなユーザー保存
+        async with receiver._lock:
             await super().save_user()
 ```
 
 ### 2. 状態管理
-```python
-from enum import Enum
-from dataclasses import dataclass
-from typing import Dict, Any
+```go
+package main
 
-class ViewState(Enum):
-    """ビューの状態"""
-    IDLE = "idle"
-    LOADING = "loading"
-    ERROR = "error"
-    SUCCESS = "success"
 
-@dataclass
-class UserViewState:
-    """ユーザービューの状態"""
+type ViewState struct {
+    // ビューの状態
+    IDLE = // idle
+    LOADING = // loading
+    ERROR = // error
+    SUCCESS = // success
+
+type UserViewState struct {
+    // ユーザービューの状態
     state: ViewState = ViewState.IDLE
-    users: List[User] = None
-    error_message: str = ""
-    success_message: str = ""
-    form_data: Dict[str, Any] = None
+    users []User = nil
+    error_message string = ""
+    success_message string = ""
+    form_data map[str]Any = nil
     
-    def __post_init__(self):
-        if self.users is None:
-            self.users = []
-        if self.form_data is None:
-            self.form_data = {}
+    func (receiver) __post_init__() {
+        if receiver.users is nil:
+            receiver.users = []
+        if receiver.form_data is nil:
+            receiver.form_data = {}
 
-class StatefulUserPresenter(IUserPresenter, IUserModelListener):
-    """状態管理を行うユーザープレゼンター"""
+type StatefulUserPresenter struct {
+    // 状態管理を行うユーザープレゼンター
     
-    def __init__(self, view: IUserView, model: IUserModel):
-        self.view = view
-        self.model = model
-        self.state = UserViewState()
+    func (receiver) __init__(view: IUserView, model: IUserModel) {
+        receiver.view = view
+        receiver.model = model
+        receiver.state = UserViewState()
         
-        self.view.set_presenter(self)
-        self.model.add_listener(self)
+        receiver.view.set_presenter(self)
+        receiver.model.add_listener(self)
         
-    async def load_users(self) -> None:
-        """状態管理付きユーザー読み込み"""
-        self._update_state(ViewState.LOADING)
-        await self.model.load_users()
+    async func (receiver) load_users() {
+        // 状態管理付きユーザー読み込み
+        receiver._update_state(ViewState.LOADING)
+        await receiver.model.load_users()
         
-    async def save_user(self) -> None:
-        """状態管理付きユーザー保存"""
+    async func (receiver) save_user() {
+        // 状態管理付きユーザー保存
         try:
-            user_data = self.view.get_user_form_data()
-            self.state.form_data = {
+            user_data = receiver.view.get_user_form_data()
+            receiver.state.form_data = {
                 'name': user_data.name,
                 'email': user_data.email
             }
             
-            self._update_state(ViewState.LOADING)
-            await self.model.save_user(user_data)
+            receiver._update_state(ViewState.LOADING)
+            await receiver.model.save_user(user_data)
             
         except ValueError as e:
-            self._update_state(ViewState.ERROR, error_message=str(e))
+            receiver._update_state(ViewState.ERROR, error_message=str(e))
             
-    def _update_state(self, new_state: ViewState, **kwargs):
-        """状態更新"""
-        self.state.state = new_state
+    func (receiver) _update_state(new_state: ViewState, **kwargs) {
+        // 状態更新
+        receiver.state.state = new_state
         
         for key, value in kwargs.items():
-            if hasattr(self.state, key):
-                setattr(self.state, key, value)
+            if hasattr(receiver.state, key):
+                setattr(receiver.state, key, value)
                 
-        self._render_view()
+        receiver._render_view()
         
-    def _render_view(self):
-        """状態に基づくビューレンダリング"""
-        if self.state.state == ViewState.LOADING:
-            self.view.show_loading()
-        elif self.state.state == ViewState.ERROR:
-            self.view.hide_loading()
-            self.view.show_error(self.state.error_message)
-        elif self.state.state == ViewState.SUCCESS:
-            self.view.hide_loading()
-            self.view.show_success(self.state.success_message)
-            self.view.show_users(self.state.users)
-        elif self.state.state == ViewState.IDLE:
-            self.view.hide_loading()
-            self.view.show_users(self.state.users)
+    func (receiver) _render_view() {
+        // 状態に基づくビューレンダリング
+        if receiver.state.state == ViewState.LOADING:
+            receiver.view.show_loading()
+        elif receiver.state.state == ViewState.ERROR:
+            receiver.view.hide_loading()
+            receiver.view.show_error(receiver.state.error_message)
+        elif receiver.state.state == ViewState.SUCCESS:
+            receiver.view.hide_loading()
+            receiver.view.show_success(receiver.state.success_message)
+            receiver.view.show_users(receiver.state.users)
+        elif receiver.state.state == ViewState.IDLE:
+            receiver.view.hide_loading()
+            receiver.view.show_users(receiver.state.users)
             
     # IUserModelListener の実装
-    def on_user_loaded(self, users: List[User]) -> None:
-        """ユーザーロード完了"""
-        self._update_state(ViewState.IDLE, users=users)
+    func (receiver) on_user_loaded(users []User) {
+        // ユーザーロード完了
+        receiver._update_state(ViewState.IDLE, users=users)
         
-    def on_user_saved(self, user: User) -> None:
-        """ユーザー保存完了"""
-        self._update_state(ViewState.SUCCESS, 
-                         success_message="ユーザーを保存しました")
+    func (receiver) on_user_saved(user: User) {
+        // ユーザー保存完了
+        receiver._update_state(ViewState.SUCCESS, 
+                         success_message=// ユーザーを保存しました)
         # フォームデータクリア
-        self.state.form_data = {}
+        receiver.state.form_data = {}
         # 一覧再読み込み
-        asyncio.create_task(self.model.load_users())
+        asyncio.create_task(receiver.model.load_users())
         
-    def on_error(self, error: str) -> None:
-        """エラー発生"""
-        self._update_state(ViewState.ERROR, error_message=error)
+    func (receiver) on_error(error string) {
+        // エラー発生
+        receiver._update_state(ViewState.ERROR, error_message=error)
 ```
 
 ## メリット

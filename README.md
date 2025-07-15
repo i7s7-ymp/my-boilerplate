@@ -1,6 +1,8 @@
-# my-boilerplate
+# my-go-boilerplate
 
-This repository serves as a collection of template repositories for my personal use. All template repositories are public and free to use. You'll find the architectural references that inspired these templates listed below. If you find these templates helpful for your own projects, I'd appreciate a GitHub Star!
+This repository serves as a collection of Go language template repositories for my personal use. All template repositories are public and free to use. You'll find the architectural references that inspired these templates listed below. If you find these templates helpful for your own projects, I'd appreciate a GitHub Star!
+
+[English](README.md) | [日本語](README.jp.md)
 
 ## Software Architecture Patterns
 
@@ -12,9 +14,8 @@ separates read and write operations for a data store. It enables independent sca
 ### Layered
 
 1. **Layered(n-tier) Architecture**:  
-separates software into logical layers.
-    - [go](https://github.com/i7s7-ymp/go-layered)
-    - [python](https://github.com/i7s7-ymp/python-layered)
+separates software into logical layers. [show detail.](docs/jp/layered-architecture.md)
+    - [i7s7-ymp/go-layered](https://github.com/i7s7-ymp/go-layered)
 
 ### Component-Based
 

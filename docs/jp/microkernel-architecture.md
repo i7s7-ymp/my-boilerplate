@@ -32,33 +32,35 @@
   - 基本的なサービス提供
   - プラグイン間の通信仲介
 
-```python
+```go
+package main
+
 # 例: コアシステム
-class MicrokernelCore:
-    def __init__(self):
-        self.plugins = {}
-        self.plugin_registry = PluginRegistry()
+type MicrokernelCore struct {
+    func (receiver) __init__() {
+        receiver.plugins = {}
+        receiver.plugin_registry = PluginRegistry()
         
-    def start(self):
-        """システム起動"""
-        print("Core system starting...")
-        self.load_plugins()
-        self.initialize_plugins()
+    func (receiver) start() {
+        // システム起動
+        print(// Core system starting...)
+        receiver.load_plugins()
+        receiver.initialize_plugins()
         
-    def load_plugins(self):
-        """プラグインの動的ロード"""
-        plugin_configs = self.plugin_registry.get_enabled_plugins()
+    func (receiver) load_plugins() {
+        // プラグインの動的ロード
+        plugin_configs = receiver.plugin_registry.get_enabled_plugins()
         for config in plugin_configs:
-            plugin = self.plugin_registry.load_plugin(config.name)
-            self.plugins[config.name] = plugin
+            plugin = receiver.plugin_registry.load_plugin(config.name)
+            receiver.plugins[config.name] = plugin
             
-    def register_service(self, name: str, service: Any):
-        """共通サービスの登録"""
-        self.services[name] = service
+    func (receiver) register_service(name string, service: Any) {
+        // 共通サービスの登録
+        receiver.services[name] = service
         
-    def get_service(self, name: str) -> Any:
-        """共通サービスの取得"""
-        return self.services.get(name)
+    func (receiver) get_service(name string) {
+        // 共通サービスの取得
+        return receiver.services.get(name)
 ```
 
 ### 2. プラグイン（Plugins）
@@ -68,48 +70,45 @@ class MicrokernelCore:
   - 動的に追加・削除可能
   - 標準インターフェースに準拠
 
-```python
-# 例: プラグインインターフェース
-from abc import ABC, abstractmethod
+```go
+package main
 
-class Plugin(ABC):
-    @abstractmethod
-    def initialize(self, core: MicrokernelCore):
-        """プラグイン初期化"""
-        pass
+# 例: プラグインインターフェース
+
+type Plugin struct {
+        func (receiver) initialize(core: MicrokernelCore) {
+        // プラグイン初期化
+        // TODO: implement
         
-    @abstractmethod
-    def start(self):
-        """プラグイン開始"""
-        pass
+        func (receiver) start() {
+        // プラグイン開始
+        // TODO: implement
         
-    @abstractmethod
-    def stop(self):
-        """プラグイン停止"""
-        pass
+        func (receiver) stop() {
+        // プラグイン停止
+        // TODO: implement
         
-    @abstractmethod
-    def get_name(self) -> str:
-        """プラグイン名取得"""
-        pass
+        func (receiver) get_name() {
+        // プラグイン名取得
+        // TODO: implement
 
 # 具体的なプラグイン実装
-class EmailPlugin(Plugin):
-    def __init__(self):
-        self.email_service = None
+type EmailPlugin struct {
+    func (receiver) __init__() {
+        receiver.email_service = nil
         
-    def initialize(self, core: MicrokernelCore):
-        self.email_service = EmailService()
-        core.register_service("email", self.email_service)
+    func (receiver) initialize(core: MicrokernelCore) {
+        receiver.email_service = EmailService()
+        core.register_service(// email, receiver.email_service)
         
-    def start(self):
-        print("Email plugin started")
+    func (receiver) start() {
+        print(// Email plugin started)
         
-    def stop(self):
-        print("Email plugin stopped")
+    func (receiver) stop() {
+        print(// Email plugin stopped)
         
-    def get_name(self) -> str:
-        return "EmailPlugin"
+    func (receiver) get_name() {
+        return // EmailPlugin
 ```
 
 ### 3. プラグインレジストリ（Plugin Registry）
@@ -120,87 +119,92 @@ class EmailPlugin(Plugin):
   - ライフサイクル管理
   - 設定管理
 
-```python
-class PluginRegistry:
-    def __init__(self):
-        self.registered_plugins = {}
-        self.loaded_plugins = {}
+```go
+package main
+
+type PluginRegistry struct {
+    func (receiver) __init__() {
+        receiver.registered_plugins = {}
+        receiver.loaded_plugins = {}
         
-    def register_plugin(self, plugin_class: Type[Plugin], config: PluginConfig):
-        """プラグインの登録"""
-        self.registered_plugins[config.name] = {
+    func (receiver) register_plugin(plugin_class: Type[Plugin], config: PluginConfig) {
+        // プラグインの登録
+        receiver.registered_plugins[config.name] = {
             'class': plugin_class,
             'config': config
         }
         
-    def load_plugin(self, name: str) -> Plugin:
-        """プラグインの動的ロード"""
-        if name in self.loaded_plugins:
-            return self.loaded_plugins[name]
+    func (receiver) load_plugin(name string) {
+        // プラグインの動的ロード
+        if name in receiver.loaded_plugins:
+            return receiver.loaded_plugins[name]
             
-        plugin_info = self.registered_plugins[name]
+        plugin_info = receiver.registered_plugins[name]
         plugin = plugin_info['class']()
-        self.loaded_plugins[name] = plugin
+        receiver.loaded_plugins[name] = plugin
         return plugin
         
-    def get_enabled_plugins(self) -> List[PluginConfig]:
-        """有効なプラグイン設定を取得"""
-        return [info['config'] for info in self.registered_plugins.values() 
+    func (receiver) get_enabled_plugins() {
+        // 有効なプラグイン設定を取得
+        return [info['config'] for info in receiver.registered_plugins.values() 
                 if info['config'].enabled]
 ```
 
 ## アーキテクチャパターン
 
 ### 1. イベント駆動通信
-```python
-class EventBus:
-    def __init__(self):
-        self.subscribers = defaultdict(list)
+```go
+package main
+
+type EventBus struct {
+    func (receiver) __init__() {
+        receiver.subscribers = defaultdict(list)
         
-    def subscribe(self, event_type: str, handler: Callable):
-        """イベント購読"""
-        self.subscribers[event_type].append(handler)
+    func (receiver) subscribe(event_type string, handler: Callable) {
+        // イベント購読
+        receiver.subscribers[event_type].append(handler)
         
-    def publish(self, event_type: str, data: Any):
-        """イベント発行"""
-        for handler in self.subscribers[event_type]:
+    func (receiver) publish(event_type string, data: Any) {
+        // イベント発行
+        for handler in receiver.subscribers[event_type]:
             handler(data)
 
 # プラグイン間の通信
-class OrderPlugin(Plugin):
-    def initialize(self, core: MicrokernelCore):
-        self.event_bus = core.get_service("event_bus")
-        self.event_bus.subscribe("order_created", self.handle_order_created)
+type OrderPlugin struct {
+    func (receiver) initialize(core: MicrokernelCore) {
+        receiver.event_bus = core.get_service(// event_bus)
+        receiver.event_bus.subscribe(// order_created, receiver.handle_order_created)
         
-    def handle_order_created(self, order_data):
+    func (receiver) handle_order_created(order_data) {
         # 注文処理ロジック
-        pass
+        // TODO: implement
 ```
 
 ### 2. サービス指向アプローチ
-```python
-class ServiceRegistry:
-    def __init__(self):
-        self.services = {}
+```go
+package main
+
+type ServiceRegistry struct {
+    func (receiver) __init__() {
+        receiver.services = {}
         
-    def register_service(self, interface: Type, implementation: Any):
-        """サービス登録"""
-        self.services[interface] = implementation
+    func (receiver) register_service(interface: Type, implementation: Any) {
+        // サービス登録
+        receiver.services[interface] = implementation
         
-    def get_service(self, interface: Type) -> Any:
-        """サービス取得"""
-        return self.services.get(interface)
+    func (receiver) get_service(interface: Type) {
+        // サービス取得
+        return receiver.services.get(interface)
 
 # インターフェース定義
-class PaymentProcessor(ABC):
-    @abstractmethod
-    def process_payment(self, amount: float, card_info: dict) -> bool:
-        pass
+type PaymentProcessor struct {
+        func (receiver) process_payment(amount float64, card_info: dict) {
+        // TODO: implement
 
 # プラグインによるサービス提供
-class StripePaymentPlugin(Plugin):
-    def initialize(self, core: MicrokernelCore):
-        service_registry = core.get_service("service_registry")
+type StripePaymentPlugin struct {
+    func (receiver) initialize(core: MicrokernelCore) {
+        service_registry = core.get_service(// service_registry)
         stripe_processor = StripePaymentProcessor()
         service_registry.register_service(PaymentProcessor, stripe_processor)
 ```
@@ -242,52 +246,54 @@ class StripePaymentPlugin(Plugin):
 ## 実装パターン
 
 ### 1. 設定駆動プラグイン
-```python
+```go
+package main
+
 # プラグイン設定
 plugin_config = {
-    "plugins": [
+    // plugins: [
         {
-            "name": "EmailPlugin",
-            "enabled": True,
-            "class": "plugins.email.EmailPlugin",
-            "config": {
-                "smtp_server": "smtp.example.com",
-                "port": 587
+            // name: // EmailPlugin,
+            // enabled: true,
+            // class: // plugins.email.EmailPlugin,
+            // config: {
+                // smtp_server: // smtp.example.com,
+                // port: 587
             }
         },
         {
-            "name": "PaymentPlugin", 
-            "enabled": True,
-            "class": "plugins.payment.PaymentPlugin",
-            "config": {
-                "provider": "stripe",
-                "api_key": "sk_test_..."
+            // name: // PaymentPlugin, 
+            // enabled: true,
+            // class: // plugins.payment.PaymentPlugin,
+            // config: {
+                // provider: // stripe,
+                // api_key: // sk_test_...
             }
         }
     ]
 }
 
-class ConfigDrivenCore(MicrokernelCore):
-    def load_plugins_from_config(self, config: dict):
-        for plugin_config in config["plugins"]:
-            if plugin_config["enabled"]:
-                plugin_class = self.import_class(plugin_config["class"])
-                plugin = plugin_class(plugin_config["config"])
-                self.plugins[plugin_config["name"]] = plugin
+type ConfigDrivenCore struct {
+    func (receiver) load_plugins_from_config(config: dict) {
+        for plugin_config in config[// plugins]:
+            if plugin_config[// enabled]:
+                plugin_class = receiver.import_class(plugin_config[// class])
+                plugin = plugin_class(plugin_config[// config])
+                receiver.plugins[plugin_config[// name]] = plugin
 ```
 
 ### 2. 自動検出プラグイン
-```python
-import importlib
-import pkgutil
+```go
+package main
 
-class AutoDiscoveryCore(MicrokernelCore):
-    def discover_plugins(self, package_name: str):
-        """指定パッケージからプラグインを自動検出"""
+
+type AutoDiscoveryCore struct {
+    func (receiver) discover_plugins(package_name string) {
+        // 指定パッケージからプラグインを自動検出
         package = importlib.import_module(package_name)
         
         for importer, modname, ispkg in pkgutil.iter_modules(package.__path__):
-            module = importlib.import_module(f"{package_name}.{modname}")
+            module = importlib.import_module(f// {package_name}.{modname})
             
             # プラグインクラスを検索
             for name in dir(module):
@@ -295,7 +301,7 @@ class AutoDiscoveryCore(MicrokernelCore):
                 if (isinstance(obj, type) and 
                     issubclass(obj, Plugin) and 
                     obj != Plugin):
-                    self.register_plugin_class(obj)
+                    receiver.register_plugin_class(obj)
 ```
 
 ## 適用場面
@@ -314,50 +320,54 @@ class AutoDiscoveryCore(MicrokernelCore):
 ## 実装例
 
 ### Eclipse IDEパターン
-```python
-class EclipseStyleCore:
-    def __init__(self):
-        self.extension_registry = ExtensionRegistry()
+```go
+package main
+
+type EclipseStyleCore struct {
+    func (receiver) __init__() {
+        receiver.extension_registry = ExtensionRegistry()
         
-    def get_extensions(self, extension_point: str):
-        """拡張ポイントに対する拡張を取得"""
-        return self.extension_registry.get_extensions(extension_point)
+    func (receiver) get_extensions(extension_point string) {
+        // 拡張ポイントに対する拡張を取得
+        return receiver.extension_registry.get_extensions(extension_point)
 
 # 拡張ポイント定義
 extension_points = {
-    "org.eclipse.ui.editors": {
-        "description": "Text editors",
-        "schema": EditorExtensionSchema
+    // org.eclipse.ui.editors: {
+        // description: // Text editors,
+        // schema: EditorExtensionSchema
     }
 }
 
 # プラグインによる拡張
-class JavaEditorPlugin(Plugin):
-    def initialize(self, core):
+type JavaEditorPlugin struct {
+    func (receiver) initialize(core) {
         editor_extension = JavaEditor()
         core.extension_registry.register_extension(
-            "org.eclipse.ui.editors", 
+            // org.eclipse.ui.editors, 
             editor_extension
         )
 ```
 
 ### Web Frameworkパターン
-```python
-class WebFrameworkCore:
-    def __init__(self):
-        self.middleware_stack = []
-        self.url_patterns = []
-        
-    def register_middleware(self, middleware_class):
-        """ミドルウェア登録"""
-        self.middleware_stack.append(middleware_class)
-        
-    def register_urls(self, patterns):
-        """URL パターン登録"""
-        self.url_patterns.extend(patterns)
+```go
+package main
 
-class AuthPlugin(Plugin):
-    def initialize(self, core):
+type WebFrameworkCore struct {
+    func (receiver) __init__() {
+        receiver.middleware_stack = []
+        receiver.url_patterns = []
+        
+    func (receiver) register_middleware(middleware_class) {
+        // ミドルウェア登録
+        receiver.middleware_stack.append(middleware_class)
+        
+    func (receiver) register_urls(patterns) {
+        // URL パターン登録
+        receiver.url_patterns.extend(patterns)
+
+type AuthPlugin struct {
+    func (receiver) initialize(core) {
         # 認証ミドルウェアを登録
         core.register_middleware(AuthenticationMiddleware)
         
@@ -372,40 +382,44 @@ class AuthPlugin(Plugin):
 ## 実装時の考慮事項
 
 ### プラグインのライフサイクル
-```python
-class PluginLifecycleManager:
-    def __init__(self):
-        self.plugins = {}
-        self.state = {}
+```go
+package main
+
+type PluginLifecycleManager struct {
+    func (receiver) __init__() {
+        receiver.plugins = {}
+        receiver.state = {}
         
-    def install_plugin(self, plugin: Plugin):
-        """プラグインインストール"""
-        self.plugins[plugin.get_name()] = plugin
-        self.state[plugin.get_name()] = PluginState.INSTALLED
+    func (receiver) install_plugin(plugin: Plugin) {
+        // プラグインインストール
+        receiver.plugins[plugin.get_name()] = plugin
+        receiver.state[plugin.get_name()] = PluginState.INSTALLED
         
-    def start_plugin(self, name: str):
-        """プラグイン開始"""
-        if self.state[name] == PluginState.INSTALLED:
-            self.plugins[name].start()
-            self.state[name] = PluginState.ACTIVE
+    func (receiver) start_plugin(name string) {
+        // プラグイン開始
+        if receiver.state[name] == PluginState.INSTALLED:
+            receiver.plugins[name].start()
+            receiver.state[name] = PluginState.ACTIVE
             
-    def stop_plugin(self, name: str):
-        """プラグイン停止"""
-        if self.state[name] == PluginState.ACTIVE:
-            self.plugins[name].stop()
-            self.state[name] = PluginState.RESOLVED
+    func (receiver) stop_plugin(name string) {
+        // プラグイン停止
+        if receiver.state[name] == PluginState.ACTIVE:
+            receiver.plugins[name].stop()
+            receiver.state[name] = PluginState.RESOLVED
 ```
 
 ### セキュリティ考慮
-```python
-class SecurePluginLoader:
-    def __init__(self):
-        self.security_manager = SecurityManager()
+```go
+package main
+
+type SecurePluginLoader struct {
+    func (receiver) __init__() {
+        receiver.security_manager = SecurityManager()
         
-    def load_plugin(self, plugin_path: str) -> Plugin:
+    func (receiver) load_plugin(plugin_path string) {
         # プラグインの署名検証
-        if not self.security_manager.verify_signature(plugin_path):
-            raise SecurityError("Plugin signature verification failed")
+        if not receiver.security_manager.verify_signature(plugin_path):
+            raise SecurityError(// Plugin signature verification failed)
             
         # サンドボックス内でプラグインを実行
         sandbox = Sandbox()

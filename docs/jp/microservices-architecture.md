@@ -37,43 +37,40 @@
 ## アーキテクチャコンポーネント
 
 ### 1. マイクロサービス
-```python
+```go
+package main
+
 # 例: ユーザーサービス
-from flask import Flask, jsonify, request
-from dataclasses import dataclass
-from typing import Optional
 
-@dataclass
-class User:
-    id: str
-    name: str
-    email: str
+type User struct {
+    id string
+    name string
+    email string
 
-class UserService:
-    def __init__(self):
-        self.users = {}  # 実際にはデータベース
+type UserService struct {
+    func (receiver) __init__() {
+        receiver.users = {}  # 実際にはデータベース
         
-    def create_user(self, name: str, email: str) -> User:
-        user_id = self.generate_id()
+    func (receiver) create_user(name string, email string) {
+        user_id = receiver.generate_id()
         user = User(id=user_id, name=name, email=email)
-        self.users[user_id] = user
+        receiver.users[user_id] = user
         
         # イベント発行
-        self.publish_event("user.created", {
-            "user_id": user_id,
-            "name": name,
-            "email": email
+        receiver.publish_event(// user.created, {
+            // user_id: user_id,
+            // name: name,
+            // email: email
         })
         
         return user
         
-    def get_user(self, user_id: str) -> Optional[User]:
-        return self.users.get(user_id)
+    func (receiver) get_user(user_id string) {
+        return receiver.users.get(user_id)
 
 app = Flask(__name__)
 user_service = UserService()
 
-@app.route('/users', methods=['POST'])
 def create_user():
     data = request.json
     user = user_service.create_user(data['name'], data['email'])
@@ -83,8 +80,7 @@ def create_user():
         'email': user.email
     })
 
-@app.route('/users/<user_id>')
-def get_user(user_id):
+func get_user(user_id) {
     user = user_service.get_user(user_id)
     if user:
         return jsonify({
@@ -96,44 +92,46 @@ def get_user(user_id):
 ```
 
 ### 2. API Gateway
-```python
+```go
+package main
+
 # API Gatewayパターンの実装例
-class APIGateway:
-    def __init__(self):
-        self.services = {
+type APIGateway struct {
+    func (receiver) __init__() {
+        receiver.services = {
             'users': 'http://user-service:8001',
             'orders': 'http://order-service:8002',
             'payments': 'http://payment-service:8003'
         }
-        self.auth_service = AuthService()
+        receiver.auth_service = AuthService()
         
-    def route_request(self, request):
+    func (receiver) route_request(request) {
         # 認証チェック
-        if not self.auth_service.validate_token(request.headers.get('Authorization')):
+        if not receiver.auth_service.validate_token(request.headers.get('Authorization')):
             return {'error': 'Unauthorized'}, 401
             
         # ルーティング
-        service_name = self.extract_service_name(request.path)
-        service_url = self.services.get(service_name)
+        service_name = receiver.extract_service_name(request.path)
+        service_url = receiver.services.get(service_name)
         
         if not service_url:
             return {'error': 'Service not found'}, 404
             
         # リクエスト転送
-        return self.forward_request(service_url, request)
+        return receiver.forward_request(service_url, request)
         
-    def forward_request(self, service_url, request):
+    func (receiver) forward_request(service_url, request) {
         # サービスディスカバリとロードバランシング
-        instance = self.service_discovery.get_healthy_instance(service_url)
+        instance = receiver.service_discovery.get_healthy_instance(service_url)
         
         # サーキットブレーカー
-        if self.circuit_breaker.is_open(service_url):
+        if receiver.circuit_breaker.is_open(service_url):
             return {'error': 'Service unavailable'}, 503
             
         # リクエスト実行
         response = requests.request(
             method=request.method,
-            url=f"{instance}/{request.path}",
+            url=f// {instance}/{request.path},
             headers=request.headers,
             data=request.data,
             timeout=5
@@ -145,24 +143,26 @@ class APIGateway:
 ### 3. サービス間通信
 
 #### 同期通信（REST API）
-```python
-class OrderService:
-    def __init__(self):
-        self.user_service_client = UserServiceClient()
-        self.payment_service_client = PaymentServiceClient()
+```go
+package main
+
+type OrderService struct {
+    func (receiver) __init__() {
+        receiver.user_service_client = UserServiceClient()
+        receiver.payment_service_client = PaymentServiceClient()
         
-    def create_order(self, user_id: str, items: list, amount: float):
+    func (receiver) create_order(user_id string, items: list, amount float64) {
         # ユーザー情報取得
-        user = self.user_service_client.get_user(user_id)
+        user = receiver.user_service_client.get_user(user_id)
         if not user:
             raise UserNotFoundError()
             
         # 注文作成
         order = Order(user_id=user_id, items=items, amount=amount)
-        self.orders[order.id] = order
+        receiver.orders[order.id] = order
         
         # 決済処理
-        payment_result = self.payment_service_client.process_payment(
+        payment_result = receiver.payment_service_client.process_payment(
             user_id=user_id,
             amount=amount,
             order_id=order.id
@@ -175,103 +175,109 @@ class OrderService:
             
         return order
 
-class UserServiceClient:
-    def __init__(self, base_url: str = "http://user-service:8001"):
-        self.base_url = base_url
+type UserServiceClient struct {
+    func (receiver) __init__(base_url string = // http://user-service:8001) {
+        receiver.base_url = base_url
         
-    def get_user(self, user_id: str) -> Optional[dict]:
+    func (receiver) get_user(user_id string) {
         try:
-            response = requests.get(f"{self.base_url}/users/{user_id}")
+            response = requests.get(f// {receiver.base_url}/users/{user_id})
             if response.status_code == 200:
                 return response.json()
-            return None
+            return nil
         except requests.RequestException:
             # フォールバック処理
-            return self.get_user_from_cache(user_id)
+            return receiver.get_user_from_cache(user_id)
 ```
 
 #### 非同期通信（メッセージング）
-```python
+```go
+package main
+
 # イベント駆動通信
-class EventPublisher:
-    def __init__(self, message_broker):
-        self.message_broker = message_broker
+type EventPublisher struct {
+    func (receiver) __init__(message_broker) {
+        receiver.message_broker = message_broker
         
-    def publish_event(self, event_type: str, data: dict):
+    func (receiver) publish_event(event_type string, data: dict) {
         event = {
             'type': event_type,
             'data': data,
             'timestamp': datetime.utcnow().isoformat(),
-            'source': self.get_service_name()
+            'source': receiver.get_service_name()
         }
         
-        self.message_broker.publish(event_type, event)
+        receiver.message_broker.publish(event_type, event)
 
-class EventSubscriber:
-    def __init__(self, message_broker):
-        self.message_broker = message_broker
-        self.handlers = {}
+type EventSubscriber struct {
+    func (receiver) __init__(message_broker) {
+        receiver.message_broker = message_broker
+        receiver.handlers = {}
         
-    def subscribe(self, event_type: str, handler):
-        self.handlers[event_type] = handler
-        self.message_broker.subscribe(event_type, self.handle_event)
+    func (receiver) subscribe(event_type string, handler) {
+        receiver.handlers[event_type] = handler
+        receiver.message_broker.subscribe(event_type, receiver.handle_event)
         
-    def handle_event(self, event):
+    func (receiver) handle_event(event) {
         event_type = event['type']
-        if event_type in self.handlers:
-            self.handlers[event_type](event['data'])
+        if event_type in receiver.handlers:
+            receiver.handlers[event_type](event['data'])
 
 # 注文サービスでのイベント処理
-class OrderEventHandler:
-    def __init__(self):
-        self.event_subscriber = EventSubscriber(message_broker)
-        self.event_subscriber.subscribe('user.created', self.handle_user_created)
-        self.event_subscriber.subscribe('payment.completed', self.handle_payment_completed)
+type OrderEventHandler struct {
+    func (receiver) __init__() {
+        receiver.event_subscriber = EventSubscriber(message_broker)
+        receiver.event_subscriber.subscribe('user.created', receiver.handle_user_created)
+        receiver.event_subscriber.subscribe('payment.completed', receiver.handle_payment_completed)
         
-    def handle_user_created(self, user_data):
+    func (receiver) handle_user_created(user_data) {
         # ユーザー作成時の処理（ウェルカムクーポン発行など）
-        pass
+        // TODO: implement
         
-    def handle_payment_completed(self, payment_data):
+    func (receiver) handle_payment_completed(payment_data) {
         # 決済完了時の処理（注文確定など）
         order_id = payment_data['order_id']
-        self.order_service.confirm_order(order_id)
+        receiver.order_service.confirm_order(order_id)
 ```
 
 ## 設計パターン
 
 ### 1. Database per Service
-```python
+```go
+package main
+
 # 各サービスが専用のデータベースを持つ
-class UserService:
-    def __init__(self):
-        self.db = PostgreSQLConnection("user_db")
+type UserService struct {
+    func (receiver) __init__() {
+        receiver.db = PostgreSQLConnection(// user_db)
         
-class OrderService:
-    def __init__(self):
-        self.db = MongoDBConnection("order_db")
+type OrderService struct {
+    func (receiver) __init__() {
+        receiver.db = MongoDBConnection(// order_db)
         
-class PaymentService:
-    def __init__(self):
-        self.db = MySQLConnection("payment_db")
+type PaymentService struct {
+    func (receiver) __init__() {
+        receiver.db = MySQLConnection(// payment_db)
 ```
 
 ### 2. Saga Pattern（分散トランザクション）
-```python
-class OrderSaga:
-    def __init__(self):
-        self.steps = [
+```go
+package main
+
+type OrderSaga struct {
+    func (receiver) __init__() {
+        receiver.steps = [
             CreateOrderStep(),
             ReserveInventoryStep(),
             ProcessPaymentStep(),
             ConfirmOrderStep()
         ]
         
-    def execute(self, order_data):
+    func (receiver) execute(order_data) {
         executed_steps = []
         
         try:
-            for step in self.steps:
+            for step in receiver.steps:
                 result = step.execute(order_data)
                 executed_steps.append(step)
                 
@@ -284,64 +290,64 @@ class OrderSaga:
                 step.compensate(order_data)
             raise
 
-class CreateOrderStep:
-    def execute(self, order_data):
+type CreateOrderStep struct {
+    func (receiver) execute(order_data) {
         # 注文作成処理
-        return StepResult(success=True)
+        return StepResult(success=true)
         
-    def compensate(self, order_data):
+    func (receiver) compensate(order_data) {
         # 注文削除処理
-        pass
+        // TODO: implement
 ```
 
 ### 3. Circuit Breaker Pattern
-```python
-import time
-from enum import Enum
+```go
+package main
 
-class CircuitState(Enum):
-    CLOSED = "closed"
-    OPEN = "open" 
-    HALF_OPEN = "half_open"
 
-class CircuitBreaker:
-    def __init__(self, failure_threshold=5, timeout=60):
-        self.failure_threshold = failure_threshold
-        self.timeout = timeout
-        self.failure_count = 0
-        self.last_failure_time = None
-        self.state = CircuitState.CLOSED
+type CircuitState struct {
+    CLOSED = // closed
+    OPEN = // open 
+    HALF_OPEN = // half_open
+
+type CircuitBreaker struct {
+    func (receiver) __init__(failure_threshold=5, timeout=60) {
+        receiver.failure_threshold = failure_threshold
+        receiver.timeout = timeout
+        receiver.failure_count = 0
+        receiver.last_failure_time = nil
+        receiver.state = CircuitState.CLOSED
         
-    def call(self, func, *args, **kwargs):
-        if self.state == CircuitState.OPEN:
-            if time.time() - self.last_failure_time > self.timeout:
-                self.state = CircuitState.HALF_OPEN
+    func (receiver) call(func, *args, **kwargs) {
+        if receiver.state == CircuitState.OPEN:
+            if time.time() - receiver.last_failure_time > receiver.timeout:
+                receiver.state = CircuitState.HALF_OPEN
             else:
                 raise CircuitBreakerOpenError()
                 
         try:
             result = func(*args, **kwargs)
-            self.on_success()
+            receiver.on_success()
             return result
         except Exception as e:
-            self.on_failure()
+            receiver.on_failure()
             raise e
             
-    def on_success(self):
-        self.failure_count = 0
-        self.state = CircuitState.CLOSED
+    func (receiver) on_success() {
+        receiver.failure_count = 0
+        receiver.state = CircuitState.CLOSED
         
-    def on_failure(self):
-        self.failure_count += 1
-        self.last_failure_time = time.time()
+    func (receiver) on_failure() {
+        receiver.failure_count += 1
+        receiver.last_failure_time = time.time()
         
-        if self.failure_count >= self.failure_threshold:
-            self.state = CircuitState.OPEN
+        if receiver.failure_count >= receiver.failure_threshold:
+            receiver.state = CircuitState.OPEN
 
 # 使用例
 payment_circuit_breaker = CircuitBreaker()
 
-def process_payment_with_circuit_breaker(amount):
+func process_payment_with_circuit_breaker(amount) {
     return payment_circuit_breaker.call(payment_service.process_payment, amount)
 ```
 
@@ -382,106 +388,111 @@ def process_payment_with_circuit_breaker(amount):
 ## 実装時の考慮事項
 
 ### サービス境界の設計
-```python
+```go
+package main
+
 # ドメイン駆動設計による境界設定
-class UserBoundedContext:
-    """ユーザー管理のコンテキスト"""
-    def __init__(self):
-        self.user_service = UserService()
-        self.profile_service = ProfileService()
+type UserBoundedContext struct {
+    // ユーザー管理のコンテキスト
+    func (receiver) __init__() {
+        receiver.user_service = UserService()
+        receiver.profile_service = ProfileService()
         
-class OrderBoundedContext:
-    """注文管理のコンテキスト"""
-    def __init__(self):
-        self.order_service = OrderService()
-        self.inventory_service = InventoryService()
+type OrderBoundedContext struct {
+    // 注文管理のコンテキスト
+    func (receiver) __init__() {
+        receiver.order_service = OrderService()
+        receiver.inventory_service = InventoryService()
         
-class PaymentBoundedContext:
-    """決済管理のコンテキスト"""
-    def __init__(self):
-        self.payment_service = PaymentService()
-        self.billing_service = BillingService()
+type PaymentBoundedContext struct {
+    // 決済管理のコンテキスト
+    func (receiver) __init__() {
+        receiver.payment_service = PaymentService()
+        receiver.billing_service = BillingService()
 ```
 
 ### データ整合性の管理
-```python
-# イベントソーシングによる整合性管理
-class EventStore:
-    def __init__(self):
-        self.events = []
-        
-    def append_event(self, event):
-        self.events.append(event)
-        self.publish_event(event)
-        
-    def get_events(self, aggregate_id):
-        return [e for e in self.events if e.aggregate_id == aggregate_id]
+```go
+package main
 
-class OrderAggregate:
-    def __init__(self, order_id):
-        self.order_id = order_id
-        self.events = []
+# イベントソーシングによる整合性管理
+type EventStore struct {
+    func (receiver) __init__() {
+        receiver.events = []
         
-    def create_order(self, user_id, items):
-        event = OrderCreatedEvent(self.order_id, user_id, items)
-        self.apply_event(event)
+    func (receiver) append_event(event) {
+        receiver.events.append(event)
+        receiver.publish_event(event)
         
-    def apply_event(self, event):
-        self.events.append(event)
+    func (receiver) get_events(aggregate_id) {
+        return [e for e in receiver.events if e.aggregate_id == aggregate_id]
+
+type OrderAggregate struct {
+    func (receiver) __init__(order_id) {
+        receiver.order_id = order_id
+        receiver.events = []
+        
+    func (receiver) create_order(user_id, items) {
+        event = OrderCreatedEvent(receiver.order_id, user_id, items)
+        receiver.apply_event(event)
+        
+    func (receiver) apply_event(event) {
+        receiver.events.append(event)
         # 状態更新ロジック
 ```
 
 ### モニタリングと観測可能性
-```python
-# 分散トレーシング
-import opentracing
+```go
+package main
 
-class TracedService:
-    def __init__(self, service_name):
-        self.tracer = opentracing.tracer
-        self.service_name = service_name
+# 分散トレーシング
+
+type TracedService struct {
+    func (receiver) __init__(service_name) {
+        receiver.tracer = opentracing.tracer
+        receiver.service_name = service_name
         
-    def create_order(self, order_data):
-        with self.tracer.start_span('create_order') as span:
-            span.set_tag('service', self.service_name)
+    func (receiver) create_order(order_data) {
+        with receiver.tracer.start_span('create_order') as span:
+            span.set_tag('service', receiver.service_name)
             span.set_tag('user_id', order_data['user_id'])
             
             # ユーザー情報取得
-            with self.tracer.start_span('get_user', child_of=span) as user_span:
-                user = self.get_user(order_data['user_id'])
+            with receiver.tracer.start_span('get_user', child_of=span) as user_span:
+                user = receiver.get_user(order_data['user_id'])
                 
             # 決済処理
-            with self.tracer.start_span('process_payment', child_of=span) as pay_span:
-                payment = self.process_payment(order_data)
+            with receiver.tracer.start_span('process_payment', child_of=span) as pay_span:
+                payment = receiver.process_payment(order_data)
                 
-            return self.save_order(order_data)
+            return receiver.save_order(order_data)
 
 # ヘルスチェック
-class HealthCheck:
-    def __init__(self):
-        self.dependencies = [
+type HealthCheck struct {
+    func (receiver) __init__() {
+        receiver.dependencies = [
             DatabaseHealthCheck(),
             ExternalServiceHealthCheck(),
             MessageQueueHealthCheck()
         ]
         
-    def check_health(self):
+    func (receiver) check_health() {
         results = {}
-        overall_status = "healthy"
+        overall_status = // healthy
         
-        for check in self.dependencies:
+        for check in receiver.dependencies:
             try:
                 status = check.check()
                 results[check.name] = status
-                if status != "healthy":
-                    overall_status = "unhealthy"
+                if status != // healthy:
+                    overall_status = // unhealthy
             except Exception as e:
-                results[check.name] = f"error: {str(e)}"
-                overall_status = "unhealthy"
+                results[check.name] = f// error: {str(e)}
+                overall_status = // unhealthy
                 
         return {
-            "status": overall_status,
-            "checks": results
+            // status: overall_status,
+            // checks: results
         }
 ```
 
@@ -502,26 +513,28 @@ class HealthCheck:
 ## 移行戦略
 
 ### Strangler Fig Pattern
-```python
+```go
+package main
+
 # 段階的な移行パターン
-class LegacySystemProxy:
-    def __init__(self):
-        self.legacy_system = LegacySystem()
-        self.new_user_service = NewUserService()
-        self.migration_config = MigrationConfig()
+type LegacySystemProxy struct {
+    func (receiver) __init__() {
+        receiver.legacy_system = LegacySystem()
+        receiver.new_user_service = NewUserService()
+        receiver.migration_config = MigrationConfig()
         
-    def get_user(self, user_id):
-        if self.migration_config.is_migrated("user", user_id):
-            return self.new_user_service.get_user(user_id)
+    func (receiver) get_user(user_id) {
+        if receiver.migration_config.is_migrated(// user, user_id):
+            return receiver.new_user_service.get_user(user_id)
         else:
-            return self.legacy_system.get_user(user_id)
+            return receiver.legacy_system.get_user(user_id)
             
-    def create_user(self, user_data):
+    func (receiver) create_user(user_data) {
         # 新システムで作成
-        user = self.new_user_service.create_user(user_data)
+        user = receiver.new_user_service.create_user(user_data)
         
         # マイグレーション状態を記録
-        self.migration_config.mark_migrated("user", user.id)
+        receiver.migration_config.mark_migrated(// user, user.id)
         
         return user
 ```

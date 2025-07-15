@@ -26,399 +26,418 @@
 ## 核心コンポーネント
 
 ### 1. 抽象表現（Abstract Expression）
-```python
-from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
+```go
+package main
 
-class Context:
-    """インタープリターのコンテキスト"""
-    def __init__(self):
-        self.variables: Dict[str, Any] = {}
-        self.functions: Dict[str, callable] = {}
-        
-    def set_variable(self, name: str, value: Any) -> None:
-        """変数設定"""
-        self.variables[name] = value
-        
-    def get_variable(self, name: str) -> Any:
-        """変数取得"""
-        return self.variables.get(name)
-        
-    def set_function(self, name: str, func: callable) -> None:
-        """関数設定"""
-        self.functions[name] = func
-        
-    def get_function(self, name: str) -> Optional[callable]:
-        """関数取得"""
-        return self.functions.get(name)
+package interpreter
 
-class Expression(ABC):
-    """抽象表現クラス"""
-    
-    @abstractmethod
-    def interpret(self, context: Context) -> Any:
-        """式の解釈実行"""
-        pass
-        
-    @abstractmethod
-    def __str__(self) -> str:
-        """文字列表現"""
-        pass
+    // fmt
+    // sync
+)
 
-class BooleanExpression(Expression):
-    """ブール式の抽象クラス"""
-    
-    @abstractmethod
-    def interpret(self, context: Context) -> bool:
-        """ブール値の解釈実行"""
-        pass
+// Context インタープリターのコンテキスト
+type Context struct {
+    variables map[string]interface{}
+    functions map[string]func([]interface{}) (interface{}, error)
+    mu        sync.RWMutex
+}
 
-class NumericExpression(Expression):
-    """数値式の抽象クラス"""
-    
-    @abstractmethod
-    def interpret(self, context: Context) -> float:
-        """数値の解釈実行"""
-        pass
+// NewContext コンテキスト作成
+func NewContext() *Context {
+    return &Context{
+        variables: make(map[string]interface{}),
+        functions: make(map[string]func([]interface{}) (interface{}, error)),
+    }
+}
+
+// SetVariable 変数設定
+func (c *Context) SetVariable(name string, value interface{}) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.variables[name] = value
+}
+
+// GetVariable 変数取得
+func (c *Context) GetVariable(name string) (interface{}, bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    value, exists := c.variables[name]
+    return value, exists
+}
+
+// SetFunction 関数設定
+func (c *Context) SetFunction(name string, fn func([]interface{}) (interface{}, error)) {
+    c.mu.Lock()
+    defer c.mu.Unlock()
+    c.functions[name] = fn
+}
+
+// GetFunction 関数取得
+func (c *Context) GetFunction(name string) (func([]interface{}) (interface{}, error), bool) {
+    c.mu.RLock()
+    defer c.mu.RUnlock()
+    fn, exists := c.functions[name]
+    return fn, exists
+}
+
+// Expression 抽象表現インターフェース
+type Expression interface {
+    Interpret(context *Context) (interface{}, error)
+    String() string
+}
+
+// BooleanExpression ブール式インターフェース
+type BooleanExpression interface {
+    Expression
+    InterpretBoolean(context *Context) (bool, error)
+}
+
+// NumericExpression 数値式インターフェース
+type NumericExpression interface {
+    Expression
+    InterpretNumeric(context *Context) (float64, error)
+        // 数値の解釈実行
+        // TODO: implement
 ```
 
 ### 2. 終端表現（Terminal Expression）
-```python
-class Variable(Expression):
-    """変数表現"""
+```go
+package main
+
+type Variable struct {
+    // 変数表現
     
-    def __init__(self, name: str):
-        self.name = name
+    func (receiver) __init__(name string) {
+        receiver.name = name
         
-    def interpret(self, context: Context) -> Any:
-        """変数値の取得"""
-        value = context.get_variable(self.name)
-        if value is None:
-            raise ValueError(f"Undefined variable: {self.name}")
+    func (receiver) interpret(context: Context) {
+        // 変数値の取得
+        value = context.get_variable(receiver.name)
+        if value is nil:
+            raise ValueError(f// Undefined variable: {receiver.name})
         return value
         
-    def __str__(self) -> str:
-        return self.name
+    func (receiver) __str__() {
+        return receiver.name
 
-class Constant(NumericExpression):
-    """定数表現"""
+type Constant struct {
+    // 定数表現
     
-    def __init__(self, value: float):
-        self.value = value
+    func (receiver) __init__(value float64) {
+        receiver.value = value
         
-    def interpret(self, context: Context) -> float:
-        """定数値の返却"""
-        return self.value
+    func (receiver) interpret(context: Context) {
+        // 定数値の返却
+        return receiver.value
         
-    def __str__(self) -> str:
-        return str(self.value)
+    func (receiver) __str__() {
+        return str(receiver.value)
 
-class StringLiteral(Expression):
-    """文字列リテラル表現"""
+type StringLiteral struct {
+    // 文字列リテラル表現
     
-    def __init__(self, value: str):
-        self.value = value
+    func (receiver) __init__(value string) {
+        receiver.value = value
         
-    def interpret(self, context: Context) -> str:
-        """文字列値の返却"""
-        return self.value
+    func (receiver) interpret(context: Context) {
+        // 文字列値の返却
+        return receiver.value
         
-    def __str__(self) -> str:
-        return f'"{self.value}"'
+    func (receiver) __str__() {
+        return f'// {receiver.value}'
 
-class BooleanLiteral(BooleanExpression):
-    """ブールリテラル表現"""
+type BooleanLiteral struct {
+    // ブールリテラル表現
     
-    def __init__(self, value: bool):
-        self.value = value
+    func (receiver) __init__(value bool) {
+        receiver.value = value
         
-    def interpret(self, context: Context) -> bool:
-        """ブール値の返却"""
-        return self.value
+    func (receiver) interpret(context: Context) {
+        // ブール値の返却
+        return receiver.value
         
-    def __str__(self) -> str:
-        return "true" if self.value else "false"
+    func (receiver) __str__() {
+        return // true if receiver.value else // false
 ```
 
 ### 3. 非終端表現（Nonterminal Expression）
-```python
-class BinaryOperatorExpression(NumericExpression):
-    """二項演算子表現の基底クラス"""
-    
-    def __init__(self, left: NumericExpression, right: NumericExpression):
-        self.left = left
-        self.right = right
-        
-    @abstractmethod
-    def operate(self, left_val: float, right_val: float) -> float:
-        """演算実行"""
-        pass
-        
-    def interpret(self, context: Context) -> float:
-        """二項演算の解釈実行"""
-        left_val = self.left.interpret(context)
-        right_val = self.right.interpret(context)
-        return self.operate(left_val, right_val)
+```go
+package main
 
-class AddExpression(BinaryOperatorExpression):
-    """加算表現"""
+type BinaryOperatorExpression struct {
+    // 二項演算子表現の基底クラス
     
-    def operate(self, left_val: float, right_val: float) -> float:
+    func (receiver) __init__(left: NumericExpression, right: NumericExpression) {
+        receiver.left = left
+        receiver.right = right
+        
+        func (receiver) operate(left_val float64, right_val float64) {
+        // 演算実行
+        // TODO: implement
+        
+    func (receiver) interpret(context: Context) {
+        // 二項演算の解釈実行
+        left_val = receiver.left.interpret(context)
+        right_val = receiver.right.interpret(context)
+        return receiver.operate(left_val, right_val)
+
+type AddExpression struct {
+    // 加算表現
+    
+    func (receiver) operate(left_val float64, right_val float64) {
         return left_val + right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} + {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} + {receiver.right})
 
-class SubtractExpression(BinaryOperatorExpression):
-    """減算表現"""
+type SubtractExpression struct {
+    // 減算表現
     
-    def operate(self, left_val: float, right_val: float) -> float:
+    func (receiver) operate(left_val float64, right_val float64) {
         return left_val - right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} - {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} - {receiver.right})
 
-class MultiplyExpression(BinaryOperatorExpression):
-    """乗算表現"""
+type MultiplyExpression struct {
+    // 乗算表現
     
-    def operate(self, left_val: float, right_val: float) -> float:
+    func (receiver) operate(left_val float64, right_val float64) {
         return left_val * right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} * {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} * {receiver.right})
 
-class DivideExpression(BinaryOperatorExpression):
-    """除算表現"""
+type DivideExpression struct {
+    // 除算表現
     
-    def operate(self, left_val: float, right_val: float) -> float:
+    func (receiver) operate(left_val float64, right_val float64) {
         if right_val == 0:
-            raise ValueError("Division by zero")
+            raise ValueError(// Division by zero)
         return left_val / right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} / {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} / {receiver.right})
 
-class PowerExpression(BinaryOperatorExpression):
-    """累乗表現"""
+type PowerExpression struct {
+    // 累乗表現
     
-    def operate(self, left_val: float, right_val: float) -> float:
+    func (receiver) operate(left_val float64, right_val float64) {
         return left_val ** right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} ^ {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} ^ {receiver.right})
 
 # ブール演算
-class BooleanBinaryExpression(BooleanExpression):
-    """ブール二項演算の基底クラス"""
+type BooleanBinaryExpression struct {
+    // ブール二項演算の基底クラス
     
-    def __init__(self, left: BooleanExpression, right: BooleanExpression):
-        self.left = left
-        self.right = right
+    func (receiver) __init__(left: BooleanExpression, right: BooleanExpression) {
+        receiver.left = left
+        receiver.right = right
 
-class AndExpression(BooleanBinaryExpression):
-    """論理積表現"""
+type AndExpression struct {
+    // 論理積表現
     
-    def interpret(self, context: Context) -> bool:
-        return self.left.interpret(context) and self.right.interpret(context)
+    func (receiver) interpret(context: Context) {
+        return receiver.left.interpret(context) and receiver.right.interpret(context)
         
-    def __str__(self) -> str:
-        return f"({self.left} AND {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} AND {receiver.right})
 
-class OrExpression(BooleanBinaryExpression):
-    """論理和表現"""
+type OrExpression struct {
+    // 論理和表現
     
-    def interpret(self, context: Context) -> bool:
-        return self.left.interpret(context) or self.right.interpret(context)
+    func (receiver) interpret(context: Context) {
+        return receiver.left.interpret(context) or receiver.right.interpret(context)
         
-    def __str__(self) -> str:
-        return f"({self.left} OR {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} OR {receiver.right})
 
-class NotExpression(BooleanExpression):
-    """論理否定表現"""
+type NotExpression struct {
+    // 論理否定表現
     
-    def __init__(self, expression: BooleanExpression):
-        self.expression = expression
+    func (receiver) __init__(expression: BooleanExpression) {
+        receiver.expression = expression
         
-    def interpret(self, context: Context) -> bool:
-        return not self.expression.interpret(context)
+    func (receiver) interpret(context: Context) {
+        return not receiver.expression.interpret(context)
         
-    def __str__(self) -> str:
-        return f"(NOT {self.expression})"
+    func (receiver) __str__() {
+        return f// (NOT {receiver.expression})
 
 # 比較演算
-class ComparisonExpression(BooleanExpression):
-    """比較演算の基底クラス"""
+type ComparisonExpression struct {
+    // 比較演算の基底クラス
     
-    def __init__(self, left: NumericExpression, right: NumericExpression):
-        self.left = left
-        self.right = right
+    func (receiver) __init__(left: NumericExpression, right: NumericExpression) {
+        receiver.left = left
+        receiver.right = right
         
-    @abstractmethod
-    def compare(self, left_val: float, right_val: float) -> bool:
-        """比較実行"""
-        pass
+        func (receiver) compare(left_val float64, right_val float64) {
+        // 比較実行
+        // TODO: implement
         
-    def interpret(self, context: Context) -> bool:
-        left_val = self.left.interpret(context)
-        right_val = self.right.interpret(context)
-        return self.compare(left_val, right_val)
+    func (receiver) interpret(context: Context) {
+        left_val = receiver.left.interpret(context)
+        right_val = receiver.right.interpret(context)
+        return receiver.compare(left_val, right_val)
 
-class EqualsExpression(ComparisonExpression):
-    """等価比較表現"""
+type EqualsExpression struct {
+    // 等価比較表現
     
-    def compare(self, left_val: float, right_val: float) -> bool:
+    func (receiver) compare(left_val float64, right_val float64) {
         return abs(left_val - right_val) < 1e-10  # 浮動小数点の比較
         
-    def __str__(self) -> str:
-        return f"({self.left} == {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} == {receiver.right})
 
-class GreaterThanExpression(ComparisonExpression):
-    """大なり比較表現"""
+type GreaterThanExpression struct {
+    // 大なり比較表現
     
-    def compare(self, left_val: float, right_val: float) -> bool:
+    func (receiver) compare(left_val float64, right_val float64) {
         return left_val > right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} > {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} > {receiver.right})
 
-class LessThanExpression(ComparisonExpression):
-    """小なり比較表現"""
+type LessThanExpression struct {
+    // 小なり比較表現
     
-    def compare(self, left_val: float, right_val: float) -> bool:
+    func (receiver) compare(left_val float64, right_val float64) {
         return left_val < right_val
         
-    def __str__(self) -> str:
-        return f"({self.left} < {self.right})"
+    func (receiver) __str__() {
+        return f// ({receiver.left} < {receiver.right})
 ```
 
 ### 4. 複合表現と関数呼び出し
-```python
-class FunctionCallExpression(Expression):
-    """関数呼び出し表現"""
+```go
+package main
+
+type FunctionCallExpression struct {
+    // 関数呼び出し表現
     
-    def __init__(self, function_name: str, arguments: List[Expression]):
-        self.function_name = function_name
-        self.arguments = arguments
+    func (receiver) __init__(function_name string, arguments []Expression) {
+        receiver.function_name = function_name
+        receiver.arguments = arguments
         
-    def interpret(self, context: Context) -> Any:
-        """関数呼び出しの解釈実行"""
-        func = context.get_function(self.function_name)
-        if func is None:
-            raise ValueError(f"Undefined function: {self.function_name}")
+    func (receiver) interpret(context: Context) {
+        // 関数呼び出しの解釈実行
+        func = context.get_function(receiver.function_name)
+        if func is nil:
+            raise ValueError(f// Undefined function: {receiver.function_name})
             
         # 引数を評価
-        arg_values = [arg.interpret(context) for arg in self.arguments]
+        arg_values = [arg.interpret(context) for arg in receiver.arguments]
         
         try:
             return func(*arg_values)
         except Exception as e:
-            raise ValueError(f"Error calling function {self.function_name}: {str(e)}")
+            raise ValueError(f// Error calling function {receiver.function_name}: {str(e)})
             
-    def __str__(self) -> str:
-        args_str = ", ".join(str(arg) for arg in self.arguments)
-        return f"{self.function_name}({args_str})"
+    func (receiver) __str__() {
+        args_str = // , .join(str(arg) for arg in receiver.arguments)
+        return f// {receiver.function_name}({args_str})
 
-class ConditionalExpression(Expression):
-    """条件表現（三項演算子）"""
+type ConditionalExpression struct {
+    // 条件表現（三項演算子）
     
     def __init__(self, condition: BooleanExpression, 
                  true_expr: Expression, false_expr: Expression):
-        self.condition = condition
-        self.true_expr = true_expr
-        self.false_expr = false_expr
+        receiver.condition = condition
+        receiver.true_expr = true_expr
+        receiver.false_expr = false_expr
         
-    def interpret(self, context: Context) -> Any:
-        """条件分岐の解釈実行"""
-        if self.condition.interpret(context):
-            return self.true_expr.interpret(context)
+    func (receiver) interpret(context: Context) {
+        // 条件分岐の解釈実行
+        if receiver.condition.interpret(context):
+            return receiver.true_expr.interpret(context)
         else:
-            return self.false_expr.interpret(context)
+            return receiver.false_expr.interpret(context)
             
-    def __str__(self) -> str:
-        return f"({self.condition} ? {self.true_expr} : {self.false_expr})"
+    func (receiver) __str__() {
+        return f// ({receiver.condition} ? {receiver.true_expr} : {receiver.false_expr})
 
-class SequenceExpression(Expression):
-    """シーケンス表現（複数の式を順次実行）"""
+type SequenceExpression struct {
+    // シーケンス表現（複数の式を順次実行）
     
-    def __init__(self, expressions: List[Expression]):
-        self.expressions = expressions
+    func (receiver) __init__(expressions []Expression) {
+        receiver.expressions = expressions
         
-    def interpret(self, context: Context) -> Any:
-        """シーケンス実行"""
-        result = None
-        for expr in self.expressions:
+    func (receiver) interpret(context: Context) {
+        // シーケンス実行
+        result = nil
+        for expr in receiver.expressions:
             result = expr.interpret(context)
         return result
         
-    def __str__(self) -> str:
-        return "; ".join(str(expr) for expr in self.expressions)
+    func (receiver) __str__() {
+        return // ; .join(str(expr) for expr in receiver.expressions)
 
-class AssignmentExpression(Expression):
-    """代入表現"""
+type AssignmentExpression struct {
+    // 代入表現
     
-    def __init__(self, variable_name: str, value_expr: Expression):
-        self.variable_name = variable_name
-        self.value_expr = value_expr
+    func (receiver) __init__(variable_name string, value_expr: Expression) {
+        receiver.variable_name = variable_name
+        receiver.value_expr = value_expr
         
-    def interpret(self, context: Context) -> Any:
-        """代入の解釈実行"""
-        value = self.value_expr.interpret(context)
-        context.set_variable(self.variable_name, value)
+    func (receiver) interpret(context: Context) {
+        // 代入の解釈実行
+        value = receiver.value_expr.interpret(context)
+        context.set_variable(receiver.variable_name, value)
         return value
         
-    def __str__(self) -> str:
-        return f"{self.variable_name} = {self.value_expr}"
+    func (receiver) __str__() {
+        return f// {receiver.variable_name} = {receiver.value_expr}
 ```
 
 ## パーサー（構文解析器）
 
 ### 1. トークナイザー（字句解析）
-```python
-import re
-from enum import Enum
-from dataclasses import dataclass
-from typing import List, Iterator, Optional
+```go
+package main
 
-class TokenType(Enum):
-    """トークンタイプ"""
-    NUMBER = "NUMBER"
-    IDENTIFIER = "IDENTIFIER"
-    STRING = "STRING"
-    PLUS = "PLUS"
-    MINUS = "MINUS"
-    MULTIPLY = "MULTIPLY"
-    DIVIDE = "DIVIDE"
-    POWER = "POWER"
-    LPAREN = "LPAREN"
-    RPAREN = "RPAREN"
-    ASSIGN = "ASSIGN"
-    EQUALS = "EQUALS"
-    GREATER = "GREATER"
-    LESS = "LESS"
-    AND = "AND"
-    OR = "OR"
-    NOT = "NOT"
-    IF = "IF"
-    THEN = "THEN"
-    ELSE = "ELSE"
-    COMMA = "COMMA"
-    SEMICOLON = "SEMICOLON"
-    EOF = "EOF"
-    WHITESPACE = "WHITESPACE"
 
-@dataclass
-class Token:
-    """トークン"""
+type TokenType struct {
+    // トークンタイプ
+    NUMBER = // NUMBER
+    IDENTIFIER = // IDENTIFIER
+    STRING = // STRING
+    PLUS = // PLUS
+    MINUS = // MINUS
+    MULTIPLY = // MULTIPLY
+    DIVIDE = // DIVIDE
+    POWER = // POWER
+    LPAREN = // LPAREN
+    RPAREN = // RPAREN
+    ASSIGN = // ASSIGN
+    EQUALS = // EQUALS
+    GREATER = // GREATER
+    LESS = // LESS
+    AND = // AND
+    OR = // OR
+    NOT = // NOT
+    IF = // IF
+    THEN = // THEN
+    ELSE = // ELSE
+    COMMA = // COMMA
+    SEMICOLON = // SEMICOLON
+    EOF = // EOF
+    WHITESPACE = // WHITESPACE
+
+type Token struct {
+    // トークン
     type: TokenType
-    value: str
-    position: int
+    value string
+    position int
 
-class Tokenizer:
-    """字句解析器"""
+type Tokenizer struct {
+    // 字句解析器
     
     TOKEN_PATTERNS = [
         (TokenType.NUMBER, r'\d+(\.\d+)?'),
-        (TokenType.STRING, r'"([^"\\\\]|\\\\.)*"'),
+        (TokenType.STRING, r'// ([^\\\\]|\\\\.)*"'),
         (TokenType.IDENTIFIER, r'[a-zA-Z_][a-zA-Z0-9_]*'),
         (TokenType.ASSIGN, r'='),
         (TokenType.EQUALS, r'=='),
@@ -445,19 +464,19 @@ class Tokenizer:
         'ELSE': TokenType.ELSE,
     }
     
-    def __init__(self, text: str):
-        self.text = text
-        self.position = 0
-        self.tokens: List[Token] = []
+    func (receiver) __init__(text string) {
+        receiver.text = text
+        receiver.position = 0
+        receiver.tokens []Token = []
         
-    def tokenize(self) -> List[Token]:
-        """字句解析実行"""
-        while self.position < len(self.text):
-            match_found = False
+    func (receiver) tokenize() {
+        // 字句解析実行
+        while receiver.position < len(receiver.text):
+            match_found = false
             
-            for token_type, pattern in self.TOKEN_PATTERNS:
+            for token_type, pattern in receiver.TOKEN_PATTERNS:
                 regex = re.compile(pattern)
-                match = regex.match(self.text, self.position)
+                match = regex.match(receiver.text, receiver.position)
                 
                 if match:
                     value = match.group(0)
@@ -466,263 +485,267 @@ class Tokenizer:
                     if token_type != TokenType.WHITESPACE:
                         # キーワードチェック
                         if token_type == TokenType.IDENTIFIER:
-                            token_type = self.KEYWORDS.get(value.upper(), TokenType.IDENTIFIER)
+                            token_type = receiver.KEYWORDS.get(value.upper(), TokenType.IDENTIFIER)
                             
-                        self.tokens.append(Token(token_type, value, self.position))
+                        receiver.tokens.append(Token(token_type, value, receiver.position))
                         
-                    self.position = match.end()
-                    match_found = True
+                    receiver.position = match.end()
+                    match_found = true
                     break
                     
             if not match_found:
-                raise ValueError(f"Invalid character at position {self.position}: {self.text[self.position]}")
+                raise ValueError(f// Invalid character at position {receiver.position}: {receiver.text[receiver.position]})
                 
-        self.tokens.append(Token(TokenType.EOF, "", self.position))
-        return self.tokens
+        receiver.tokens.append(Token(TokenType.EOF, "", receiver.position))
+        return receiver.tokens
 ```
 
 ### 2. 再帰下降パーサー
-```python
-class Parser:
-    """再帰下降パーサー"""
+```go
+package main
+
+type Parser struct {
+    // 再帰下降パーサー
     
-    def __init__(self, tokens: List[Token]):
-        self.tokens = tokens
-        self.current = 0
+    func (receiver) __init__(tokens []Token) {
+        receiver.tokens = tokens
+        receiver.current = 0
         
-    def parse(self) -> Expression:
-        """構文解析実行"""
-        expr = self.parse_sequence()
-        if not self.is_at_end():
-            raise ValueError(f"Unexpected token: {self.peek().value}")
+    func (receiver) parse() {
+        // 構文解析実行
+        expr = receiver.parse_sequence()
+        if not receiver.is_at_end():
+            raise ValueError(f// Unexpected token: {receiver.peek().value})
         return expr
         
-    def parse_sequence(self) -> Expression:
-        """シーケンス解析"""
+    func (receiver) parse_sequence() {
+        // シーケンス解析
         expressions = []
-        expressions.append(self.parse_assignment())
+        expressions.append(receiver.parse_assignment())
         
-        while self.match(TokenType.SEMICOLON):
-            expressions.append(self.parse_assignment())
+        while receiver.match(TokenType.SEMICOLON):
+            expressions.append(receiver.parse_assignment())
             
         if len(expressions) == 1:
             return expressions[0]
         return SequenceExpression(expressions)
         
-    def parse_assignment(self) -> Expression:
-        """代入解析"""
-        expr = self.parse_or()
+    func (receiver) parse_assignment() {
+        // 代入解析
+        expr = receiver.parse_or()
         
-        if self.match(TokenType.ASSIGN):
+        if receiver.match(TokenType.ASSIGN):
             if not isinstance(expr, Variable):
-                raise ValueError("Invalid assignment target")
-            value = self.parse_assignment()
+                raise ValueError(// Invalid assignment target)
+            value = receiver.parse_assignment()
             return AssignmentExpression(expr.name, value)
             
         return expr
         
-    def parse_or(self) -> Expression:
-        """論理和解析"""
-        expr = self.parse_and()
+    func (receiver) parse_or() {
+        // 論理和解析
+        expr = receiver.parse_and()
         
-        while self.match(TokenType.OR):
-            right = self.parse_and()
+        while receiver.match(TokenType.OR):
+            right = receiver.parse_and()
             expr = OrExpression(expr, right)
             
         return expr
         
-    def parse_and(self) -> Expression:
-        """論理積解析"""
-        expr = self.parse_equality()
+    func (receiver) parse_and() {
+        // 論理積解析
+        expr = receiver.parse_equality()
         
-        while self.match(TokenType.AND):
-            right = self.parse_equality()
+        while receiver.match(TokenType.AND):
+            right = receiver.parse_equality()
             expr = AndExpression(expr, right)
             
         return expr
         
-    def parse_equality(self) -> Expression:
-        """等価比較解析"""
-        expr = self.parse_comparison()
+    func (receiver) parse_equality() {
+        // 等価比較解析
+        expr = receiver.parse_comparison()
         
-        while self.match(TokenType.EQUALS):
-            right = self.parse_comparison()
+        while receiver.match(TokenType.EQUALS):
+            right = receiver.parse_comparison()
             expr = EqualsExpression(expr, right)
             
         return expr
         
-    def parse_comparison(self) -> Expression:
-        """比較解析"""
-        expr = self.parse_addition()
+    func (receiver) parse_comparison() {
+        // 比較解析
+        expr = receiver.parse_addition()
         
-        while True:
-            if self.match(TokenType.GREATER):
-                right = self.parse_addition()
+        while true:
+            if receiver.match(TokenType.GREATER):
+                right = receiver.parse_addition()
                 expr = GreaterThanExpression(expr, right)
-            elif self.match(TokenType.LESS):
-                right = self.parse_addition()
+            elif receiver.match(TokenType.LESS):
+                right = receiver.parse_addition()
                 expr = LessThanExpression(expr, right)
             else:
                 break
                 
         return expr
         
-    def parse_addition(self) -> Expression:
-        """加減算解析"""
-        expr = self.parse_multiplication()
+    func (receiver) parse_addition() {
+        // 加減算解析
+        expr = receiver.parse_multiplication()
         
-        while True:
-            if self.match(TokenType.PLUS):
-                right = self.parse_multiplication()
+        while true:
+            if receiver.match(TokenType.PLUS):
+                right = receiver.parse_multiplication()
                 expr = AddExpression(expr, right)
-            elif self.match(TokenType.MINUS):
-                right = self.parse_multiplication()
+            elif receiver.match(TokenType.MINUS):
+                right = receiver.parse_multiplication()
                 expr = SubtractExpression(expr, right)
             else:
                 break
                 
         return expr
         
-    def parse_multiplication(self) -> Expression:
-        """乗除算解析"""
-        expr = self.parse_power()
+    func (receiver) parse_multiplication() {
+        // 乗除算解析
+        expr = receiver.parse_power()
         
-        while True:
-            if self.match(TokenType.MULTIPLY):
-                right = self.parse_power()
+        while true:
+            if receiver.match(TokenType.MULTIPLY):
+                right = receiver.parse_power()
                 expr = MultiplyExpression(expr, right)
-            elif self.match(TokenType.DIVIDE):
-                right = self.parse_power()
+            elif receiver.match(TokenType.DIVIDE):
+                right = receiver.parse_power()
                 expr = DivideExpression(expr, right)
             else:
                 break
                 
         return expr
         
-    def parse_power(self) -> Expression:
-        """累乗解析"""
-        expr = self.parse_unary()
+    func (receiver) parse_power() {
+        // 累乗解析
+        expr = receiver.parse_unary()
         
-        if self.match(TokenType.POWER):
-            right = self.parse_power()  # 右結合
+        if receiver.match(TokenType.POWER):
+            right = receiver.parse_power()  # 右結合
             expr = PowerExpression(expr, right)
             
         return expr
         
-    def parse_unary(self) -> Expression:
-        """単項演算解析"""
-        if self.match(TokenType.NOT):
-            expr = self.parse_unary()
+    func (receiver) parse_unary() {
+        // 単項演算解析
+        if receiver.match(TokenType.NOT):
+            expr = receiver.parse_unary()
             return NotExpression(expr)
             
-        if self.match(TokenType.MINUS):
-            expr = self.parse_unary()
+        if receiver.match(TokenType.MINUS):
+            expr = receiver.parse_unary()
             return MultiplyExpression(Constant(-1), expr)
             
-        return self.parse_primary()
+        return receiver.parse_primary()
         
-    def parse_primary(self) -> Expression:
-        """基本要素解析"""
-        if self.match(TokenType.NUMBER):
-            return Constant(float(self.previous().value))
+    func (receiver) parse_primary() {
+        // 基本要素解析
+        if receiver.match(TokenType.NUMBER):
+            return Constant(float(receiver.previous().value))
             
-        if self.match(TokenType.STRING):
+        if receiver.match(TokenType.STRING):
             # 引用符を除去
-            value = self.previous().value[1:-1]
+            value = receiver.previous().value[1:-1]
             return StringLiteral(value)
             
-        if self.match(TokenType.IDENTIFIER):
-            name = self.previous().value
+        if receiver.match(TokenType.IDENTIFIER):
+            name = receiver.previous().value
             
             # 関数呼び出しチェック
-            if self.match(TokenType.LPAREN):
+            if receiver.match(TokenType.LPAREN):
                 arguments = []
                 
-                if not self.check(TokenType.RPAREN):
-                    arguments.append(self.parse_assignment())
-                    while self.match(TokenType.COMMA):
-                        arguments.append(self.parse_assignment())
+                if not receiver.check(TokenType.RPAREN):
+                    arguments.append(receiver.parse_assignment())
+                    while receiver.match(TokenType.COMMA):
+                        arguments.append(receiver.parse_assignment())
                         
-                self.consume(TokenType.RPAREN, "Expected ')' after function arguments")
+                receiver.consume(TokenType.RPAREN, // Expected ')' after function arguments)
                 return FunctionCallExpression(name, arguments)
                 
             return Variable(name)
             
-        if self.match(TokenType.LPAREN):
-            expr = self.parse_assignment()
-            self.consume(TokenType.RPAREN, "Expected ')' after expression")
+        if receiver.match(TokenType.LPAREN):
+            expr = receiver.parse_assignment()
+            receiver.consume(TokenType.RPAREN, // Expected ')' after expression)
             return expr
             
-        raise ValueError(f"Unexpected token: {self.peek().value}")
+        raise ValueError(f// Unexpected token: {receiver.peek().value})
         
-    def match(self, *types: TokenType) -> bool:
-        """トークンタイプマッチング"""
+    func (receiver) match(*types: TokenType) {
+        // トークンタイプマッチング
         for token_type in types:
-            if self.check(token_type):
-                self.advance()
-                return True
-        return False
+            if receiver.check(token_type):
+                receiver.advance()
+                return true
+        return false
         
-    def check(self, token_type: TokenType) -> bool:
-        """現在のトークンタイプチェック"""
-        if self.is_at_end():
-            return False
-        return self.peek().type == token_type
+    func (receiver) check(token_type: TokenType) {
+        // 現在のトークンタイプチェック
+        if receiver.is_at_end():
+            return false
+        return receiver.peek().type == token_type
         
-    def advance(self) -> Token:
-        """次のトークンに進む"""
-        if not self.is_at_end():
-            self.current += 1
-        return self.previous()
+    func (receiver) advance() {
+        // 次のトークンに進む
+        if not receiver.is_at_end():
+            receiver.current += 1
+        return receiver.previous()
         
-    def is_at_end(self) -> bool:
-        """終端チェック"""
-        return self.peek().type == TokenType.EOF
+    func (receiver) is_at_end() {
+        // 終端チェック
+        return receiver.peek().type == TokenType.EOF
         
-    def peek(self) -> Token:
-        """現在のトークン取得"""
-        return self.tokens[self.current]
+    func (receiver) peek() {
+        // 現在のトークン取得
+        return receiver.tokens[receiver.current]
         
-    def previous(self) -> Token:
-        """前のトークン取得"""
-        return self.tokens[self.current - 1]
+    func (receiver) previous() {
+        // 前のトークン取得
+        return receiver.tokens[receiver.current - 1]
         
-    def consume(self, token_type: TokenType, message: str) -> Token:
-        """期待されるトークンの消費"""
-        if self.check(token_type):
-            return self.advance()
+    func (receiver) consume(token_type: TokenType, message string) {
+        // 期待されるトークンの消費
+        if receiver.check(token_type):
+            return receiver.advance()
         raise ValueError(message)
 ```
 
 ## 高度な機能実装
 
 ### 1. ドメイン固有言語（DSL）
-```python
-class RuleEngineInterpreter:
-    """ルールエンジンのインタープリター"""
+```go
+package main
+
+type RuleEngineInterpreter struct {
+    // ルールエンジンのインタープリター
     
-    def __init__(self):
-        self.context = Context()
-        self.setup_builtin_functions()
+    func (receiver) __init__() {
+        receiver.context = Context()
+        receiver.setup_builtin_functions()
         
-    def setup_builtin_functions(self):
-        """組み込み関数の設定"""
-        self.context.set_function("max", max)
-        self.context.set_function("min", min)
-        self.context.set_function("abs", abs)
-        self.context.set_function("round", round)
-        self.context.set_function("len", len)
+    func (receiver) setup_builtin_functions() {
+        // 組み込み関数の設定
+        receiver.context.set_function(// max, max)
+        receiver.context.set_function(// min, min)
+        receiver.context.set_function(// abs, abs)
+        receiver.context.set_function(// round, round)
+        receiver.context.set_function(// len, len)
         
         # カスタム関数
-        self.context.set_function("contains", lambda text, substring: substring in text)
-        self.context.set_function("startswith", lambda text, prefix: text.startswith(prefix))
-        self.context.set_function("endswith", lambda text, suffix: text.endswith(suffix))
+        receiver.context.set_function(// contains, lambda text, substring: substring in text)
+        receiver.context.set_function(// startswith, lambda text, prefix: text.startswith(prefix))
+        receiver.context.set_function(// endswith, lambda text, suffix: text.endswith(suffix))
         
-    def evaluate_rule(self, rule_text: str, data: Dict[str, Any]) -> bool:
-        """ルールの評価"""
+    func (receiver) evaluate_rule(rule_text string, data map[str]Any) {
+        // ルールの評価
         # データをコンテキストに設定
         for key, value in data.items():
-            self.context.set_variable(key, value)
+            receiver.context.set_variable(key, value)
             
         # パースして実行
         tokenizer = Tokenizer(rule_text)
@@ -730,7 +753,7 @@ class RuleEngineInterpreter:
         parser = Parser(tokens)
         expression = parser.parse()
         
-        result = expression.interpret(self.context)
+        result = expression.interpret(receiver.context)
         return bool(result)
 
 # 使用例
@@ -738,110 +761,113 @@ rule_engine = RuleEngineInterpreter()
 
 # 顧客データ
 customer_data = {
-    "age": 25,
-    "income": 50000,
-    "credit_score": 750,
-    "employment_years": 3,
-    "name": "John Doe"
+    // age: 25,
+    // income: 50000,
+    // credit_score: 750,
+    // employment_years: 3,
+    // name: // John Doe
 }
 
 # ルール定義
 rules = [
-    "age >= 18 AND age <= 65",                                    # 年齢制限
-    "income > 30000",                                             # 収入制限
-    "credit_score >= 700",                                        # 信用スコア
-    "employment_years >= 2",                                      # 勤続年数
-    "contains(name, \"John\")",                                   # 名前チェック
+    // age >= 18 AND age <= 65,                                    # 年齢制限
+    // income > 30000,                                             # 収入制限
+    // credit_score >= 700,                                        # 信用スコア
+    // employment_years >= 2,                                      # 勤続年数
+    // contains(name, \John\// ),                                   # 名前チェック
 ]
 
 # ルール評価
 for i, rule in enumerate(rules):
     result = rule_engine.evaluate_rule(rule, customer_data)
-    print(f"Rule {i+1}: {rule} -> {result}")
+    print(f// Rule {i+1}: {rule} -> {result})
 ```
 
 ### 2. 計算式エンジン
-```python
-class CalculationEngine:
-    """計算式エンジン"""
+```go
+package main
+
+type CalculationEngine struct {
+    // 計算式エンジン
     
-    def __init__(self):
-        self.context = Context()
-        self.setup_math_functions()
+    func (receiver) __init__() {
+        receiver.context = Context()
+        receiver.setup_math_functions()
         
-    def setup_math_functions(self):
-        """数学関数の設定"""
-        import math
-        
-        self.context.set_function("sin", math.sin)
-        self.context.set_function("cos", math.cos)
-        self.context.set_function("tan", math.tan)
-        self.context.set_function("log", math.log)
-        self.context.set_function("log10", math.log10)
-        self.context.set_function("sqrt", math.sqrt)
-        self.context.set_function("exp", math.exp)
+    func (receiver) setup_math_functions() {
+        // 数学関数の設定
+                
+        receiver.context.set_function(// sin, math.sin)
+        receiver.context.set_function(// cos, math.cos)
+        receiver.context.set_function(// tan, math.tan)
+        receiver.context.set_function(// log, math.log)
+        receiver.context.set_function(// log10, math.log10)
+        receiver.context.set_function(// sqrt, math.sqrt)
+        receiver.context.set_function(// exp, math.exp)
         
         # 定数
-        self.context.set_variable("PI", math.pi)
-        self.context.set_variable("E", math.e)
+        receiver.context.set_variable(// PI, math.pi)
+        receiver.context.set_variable(// E, math.e)
         
-    def calculate(self, formula: str, variables: Dict[str, float] = None) -> float:
-        """数式の計算"""
+    func (receiver) calculate(formula string, variables map[str]float = nil) {
+        // 数式の計算
         if variables:
             for name, value in variables.items():
-                self.context.set_variable(name, value)
+                receiver.context.set_variable(name, value)
                 
         tokenizer = Tokenizer(formula)
         tokens = tokenizer.tokenize()
         parser = Parser(tokens)
         expression = parser.parse()
         
-        result = expression.interpret(self.context)
+        result = expression.interpret(receiver.context)
         return float(result)
 
 # 使用例
 calc_engine = CalculationEngine()
 
 # 基本計算
-result1 = calc_engine.calculate("2 + 3 * 4")
-print(f"2 + 3 * 4 = {result1}")
+result1 = calc_engine.calculate(// 2 + 3 * 4)
+print(f// 2 + 3 * 4 = {result1})
 
 # 変数を使った計算
-variables = {"x": 10, "y": 5}
-result2 = calc_engine.calculate("x^2 + y^2", variables)
-print(f"x^2 + y^2 = {result2}")
+variables = {// x: 10, // y: 5}
+result2 = calc_engine.calculate(// x^2 + y^2, variables)
+print(f// x^2 + y^2 = {result2})
 
 # 関数を使った計算
-result3 = calc_engine.calculate("sin(PI/2) + cos(0)")
-print(f"sin(π/2) + cos(0) = {result3}")
+result3 = calc_engine.calculate(// sin(PI/2) + cos(0))
+print(f// sin(π/2) + cos(0) = {result3})
 ```
 
 ### 3. クエリ言語インタープリター
-```python
-class QueryLanguageInterpreter:
-    """クエリ言語インタープリター"""
+```go
+package main
+
+type QueryLanguageInterpreter struct {
+    // クエリ言語インタープリター
     
-    def __init__(self, data_source: List[Dict[str, Any]]):
-        self.data_source = data_source
-        self.context = Context()
-        self.setup_query_functions()
+    func (receiver) __init__(data_source []Dict[str, Any]) {
+        receiver.data_source = data_source
+        receiver.context = Context()
+        receiver.setup_query_functions()
         
-    def setup_query_functions(self):
-        """クエリ関数の設定"""
-        self.context.set_function("count", len)
-        self.context.set_function("sum", sum)
-        self.context.set_function("avg", lambda lst: sum(lst) / len(lst) if lst else 0)
-        self.context.set_function("max", max)
-        self.context.set_function("min", min)
+    func (receiver) setup_query_functions() {
+        // クエリ関数の設定
+        receiver.context.set_function(// count, len)
+        receiver.context.set_function(// sum, sum)
+        receiver.context.set_function(// avg, lambda lst: sum(lst) / len(lst) if lst else 0)
+        receiver.context.set_function(// max, max)
+        receiver.context.set_function(// min, min)
         
-    def execute_query(self, query_expr: str) -> List[Dict[str, Any]]:
-        """クエリの実行"""
+    func (receiver) execute_query(query_expr string) {
+        // クエリの実行
         results = []
         
-        for record in self.data_source:
+        for record in receiver.data_source:
             # レコードをコンテキストに設定
             for key, value in record.items():
-                self.context.set_variable(key, value)
+                receiver.context.set_variable(key, value)
                 
             # クエリ評価
             tokenizer = Tokenizer(query_expr)
@@ -849,89 +875,90 @@ class QueryLanguageInterpreter:
             parser = Parser(tokens)
             expression = parser.parse()
             
-            if expression.interpret(self.context):
+            if expression.interpret(receiver.context):
                 results.append(record.copy())
                 
         return results
 
 # 使用例
 data = [
-    {"name": "Alice", "age": 30, "salary": 70000, "department": "Engineering"},
-    {"name": "Bob", "age": 25, "salary": 50000, "department": "Marketing"},
-    {"name": "Charlie", "age": 35, "salary": 80000, "department": "Engineering"},
-    {"name": "Diana", "age": 28, "salary": 60000, "department": "Sales"},
+    {// name: // Alice, // age: 30, // salary: 70000, // department: // Engineering},
+    {// name: // Bob, // age: 25, // salary: 50000, // department: // Marketing},
+    {// name: // Charlie, // age: 35, // salary: 80000, // department: // Engineering},
+    {// name: // Diana, // age: 28, // salary: 60000, // department: // Sales},
 ]
 
 query_engine = QueryLanguageInterpreter(data)
 
 # クエリ実行例
 queries = [
-    "age > 25",                                    # 年齢が25歳超
-    "salary >= 60000",                            # 給与が60000以上
-    "age > 25 AND department == \"Engineering\"", # エンジニアリング部門の25歳超
+    // age > 25,                                    # 年齢が25歳超
+    // salary >= 60000,                            # 給与が60000以上
+    // age > 25 AND department == \Engineering\"", # エンジニアリング部門の25歳超
 ]
 
 for query in queries:
-    print(f"Query: {query}")
+    print(f// Query: {query})
     results = query_engine.execute_query(query)
     for result in results:
-        print(f"  {result}")
+        print(f//   {result})
     print()
 ```
 
 ## 実装時の考慮事項
 
 ### 1. エラーハンドリング
-```python
-class InterpreterError(Exception):
-    """インタープリターエラー"""
-    pass
+```go
+package main
 
-class SyntaxError(InterpreterError):
-    """構文エラー"""
-    def __init__(self, message: str, position: int):
-        self.message = message
-        self.position = position
-        super().__init__(f"Syntax error at position {position}: {message}")
+type InterpreterError struct {
+    // インタープリターエラー
+    // TODO: implement
 
-class RuntimeError(InterpreterError):
-    """実行時エラー"""
-    def __init__(self, message: str, expression: Expression):
-        self.message = message
-        self.expression = expression
-        super().__init__(f"Runtime error in '{expression}': {message}")
+type SyntaxError struct {
+    // 構文エラー
+    func (receiver) __init__(message string, position int) {
+        receiver.message = message
+        receiver.position = position
+        super().__init__(f// Syntax error at position {position}: {message})
 
-class SafeInterpreter:
-    """安全なインタープリター"""
+type RuntimeError struct {
+    // 実行時エラー
+    func (receiver) __init__(message string, expression: Expression) {
+        receiver.message = message
+        receiver.expression = expression
+        super().__init__(f// Runtime error in '{expression}': {message})
+
+type SafeInterpreter struct {
+    // 安全なインタープリター
     
-    def __init__(self, max_depth: int = 100, timeout_seconds: int = 10):
-        self.max_depth = max_depth
-        self.timeout_seconds = timeout_seconds
-        self.current_depth = 0
+    func (receiver) __init__(max_depth int = 100, timeout_seconds int = 10) {
+        receiver.max_depth = max_depth
+        receiver.timeout_seconds = timeout_seconds
+        receiver.current_depth = 0
         
-    def safe_interpret(self, expression: Expression, context: Context) -> Any:
-        """安全な解釈実行"""
-        import signal
-        
-        def timeout_handler(signum, frame):
-            raise TimeoutError("Interpretation timeout")
+    func (receiver) safe_interpret(expression: Expression, context: Context) {
+        // 安全な解釈実行
+                
+        func timeout_handler(signum, frame) {
+            raise TimeoutError(// Interpretation timeout)
             
         # タイムアウト設定
         signal.signal(signal.SIGALRM, timeout_handler)
-        signal.alarm(self.timeout_seconds)
+        signal.alarm(receiver.timeout_seconds)
         
         try:
-            self.current_depth = 0
-            return self._safe_interpret_recursive(expression, context)
+            receiver.current_depth = 0
+            return receiver._safe_interpret_recursive(expression, context)
         finally:
             signal.alarm(0)  # タイムアウト解除
             
-    def _safe_interpret_recursive(self, expression: Expression, context: Context) -> Any:
-        """再帰深度チェック付き解釈"""
-        self.current_depth += 1
+    func (receiver) _safe_interpret_recursive(expression: Expression, context: Context) {
+        // 再帰深度チェック付き解釈
+        receiver.current_depth += 1
         
-        if self.current_depth > self.max_depth:
-            raise RuntimeError("Maximum recursion depth exceeded", expression)
+        if receiver.current_depth > receiver.max_depth:
+            raise RuntimeError(// Maximum recursion depth exceeded, expression)
             
         try:
             result = expression.interpret(context)
@@ -939,54 +966,56 @@ class SafeInterpreter:
         except Exception as e:
             raise RuntimeError(str(e), expression)
         finally:
-            self.current_depth -= 1
+            receiver.current_depth -= 1
 ```
 
 ### 2. パフォーマンス最適化
-```python
-class OptimizedExpression(Expression):
-    """最適化された表現"""
+```go
+package main
+
+type OptimizedExpression struct {
+    // 最適化された表現
     
-    def __init__(self, original: Expression):
-        self.original = original
-        self.cached_result = None
-        self.is_constant = self._check_if_constant()
+    func (receiver) __init__(original: Expression) {
+        receiver.original = original
+        receiver.cached_result = nil
+        receiver.is_constant = receiver._check_if_constant()
         
-    def _check_if_constant(self) -> bool:
-        """定数式かどうかチェック"""
-        return isinstance(self.original, (Constant, StringLiteral, BooleanLiteral))
+    func (receiver) _check_if_constant() {
+        // 定数式かどうかチェック
+        return isinstance(receiver.original, (Constant, StringLiteral, BooleanLiteral))
         
-    def interpret(self, context: Context) -> Any:
-        """最適化された解釈実行"""
-        if self.is_constant and self.cached_result is not None:
-            return self.cached_result
+    func (receiver) interpret(context: Context) {
+        // 最適化された解釈実行
+        if receiver.is_constant and receiver.cached_result is not nil:
+            return receiver.cached_result
             
-        result = self.original.interpret(context)
+        result = receiver.original.interpret(context)
         
-        if self.is_constant:
-            self.cached_result = result
+        if receiver.is_constant:
+            receiver.cached_result = result
             
         return result
         
-    def __str__(self) -> str:
-        return str(self.original)
+    func (receiver) __str__() {
+        return str(receiver.original)
 
-class ExpressionOptimizer:
-    """式の最適化器"""
+type ExpressionOptimizer struct {
+    // 式の最適化器
     
-    def optimize(self, expression: Expression) -> Expression:
-        """式の最適化"""
+    func (receiver) optimize(expression: Expression) {
+        // 式の最適化
         if isinstance(expression, BinaryOperatorExpression):
-            return self._optimize_binary_operation(expression)
+            return receiver._optimize_binary_operation(expression)
         elif isinstance(expression, BooleanBinaryExpression):
-            return self._optimize_boolean_operation(expression)
+            return receiver._optimize_boolean_operation(expression)
         else:
             return expression
             
-    def _optimize_binary_operation(self, expr: BinaryOperatorExpression) -> Expression:
-        """二項演算の最適化"""
-        left = self.optimize(expr.left)
-        right = self.optimize(expr.right)
+    func (receiver) _optimize_binary_operation(expr: BinaryOperatorExpression) {
+        // 二項演算の最適化
+        left = receiver.optimize(expr.left)
+        right = receiver.optimize(expr.right)
         
         # 定数畳み込み
         if isinstance(left, Constant) and isinstance(right, Constant):
@@ -994,7 +1023,7 @@ class ExpressionOptimizer:
                 result = expr.operate(left.value, right.value)
                 return Constant(result)
             except:
-                pass  # エラーの場合は最適化しない
+                // TODO: implement  # エラーの場合は最適化しない
                 
         # ゼロとの演算最適化
         if isinstance(expr, AddExpression):
@@ -1020,17 +1049,17 @@ class ExpressionOptimizer:
         expr.right = right
         return expr
         
-    def _optimize_boolean_operation(self, expr: BooleanBinaryExpression) -> Expression:
-        """ブール演算の最適化"""
-        left = self.optimize(expr.left)
-        right = self.optimize(expr.right)
+    func (receiver) _optimize_boolean_operation(expr: BooleanBinaryExpression) {
+        // ブール演算の最適化
+        left = receiver.optimize(expr.left)
+        right = receiver.optimize(expr.right)
         
         if isinstance(expr, AndExpression):
             # false AND x = false
             if isinstance(left, BooleanLiteral) and not left.value:
-                return BooleanLiteral(False)
+                return BooleanLiteral(false)
             if isinstance(right, BooleanLiteral) and not right.value:
-                return BooleanLiteral(False)
+                return BooleanLiteral(false)
             # true AND x = x
             if isinstance(left, BooleanLiteral) and left.value:
                 return right
@@ -1040,9 +1069,9 @@ class ExpressionOptimizer:
         if isinstance(expr, OrExpression):
             # true OR x = true
             if isinstance(left, BooleanLiteral) and left.value:
-                return BooleanLiteral(True)
+                return BooleanLiteral(true)
             if isinstance(right, BooleanLiteral) and right.value:
-                return BooleanLiteral(True)
+                return BooleanLiteral(true)
             # false OR x = x
             if isinstance(left, BooleanLiteral) and not left.value:
                 return right
