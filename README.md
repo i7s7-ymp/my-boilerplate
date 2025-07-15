@@ -2,7 +2,7 @@
 
 This repository serves as a collection of Go language template repositories for my personal use. All template repositories are public and free to use. You'll find the architectural references that inspired these templates listed below. If you find these templates helpful for your own projects, I'd appreciate a GitHub Star!
 
-[English](README.md) | [日本語](README.jp.md)
+[English](./README.md) | [日本語](./README.jp.md)
 
 ## Software Architecture Patterns
 
